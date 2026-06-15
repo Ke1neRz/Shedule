@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Группы{% endblock %}
+{% block content %}
+<h1>Академические группы</h1>
+<a href="/groups/academic/add" class="btn btn-primary mb-3">Добавить академическую группу</a>
+<table class="table table-bordered">
+<thead><tr><th>Номер</th><th>Учебный план</th><th></th></tr></thead>
+<tbody>
+{% for g in academic %}
+<tr>
+  <td>{{ g.group_number }}</td>
+  <td>{{ g.curriculum_name }}</td>
+  <td>
+    <a href="/groups/academic/edit/{{ g.academic_group_id }}" class="btn btn-sm btn-warning">Изменить</a>
+    <form action="/groups/academic/delete/{{ g.academic_group_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить?')">
+      <button class="btn btn-sm btn-danger">Удалить</button>
+    </form>
+  </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+<h1>Учебные группы</h1>
+<a href="/groups/study/add" class="btn btn-primary mb-3">Добавить учебную группу</a>
+<table class="table table-bordered">
+<thead><tr><th>Название</th><th>Студентов</th><th>Академические группы</th><th>Учебный план</th><th></th></tr></thead>
+<tbody>
+{% for g in study %}
+<tr>
+  <td>{{ g.name }}</td>
+  <td>{{ g.student_count }}</td>
+  <td>{{ g.academic_groups or '' }}</td>
+  <td>{{ g.curriculum_name }}</td>
+  <td>
+    <a href="/groups/study/edit/{{ g.group_id }}" class="btn btn-sm btn-warning">Изменить</a>
+    <form action="/groups/study/delete/{{ g.group_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить?')">
+      <button class="btn btn-sm btn-danger">Удалить</button>
+    </form>
+  </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Шахматная ведомость{% endblock %}
+{% block content %}
+<h1>Шахматная ведомость</h1>
+
+<form method="get" class="row g-3 mb-4">
+  <div class="col-md-4">
+    <label>Группы (Ctrl для нескольких)</label>
+    <select name="group_ids" class="form-select" multiple size="6" required>
+      {% for g in groups %}
+      <option value="{{ g.group_id }}" {% if g.group_id in selected_ids %}selected{% endif %}>{{ g.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-3">
+    <label>С даты</label>
+    <input type="date" name="date_from" class="form-control" value="{{ date_from }}" required>
+  </div>
+  <div class="col-md-3">
+    <label>По дату</label>
+    <input type="date" name="date_to" class="form-control" value="{{ date_to }}" required>
+  </div>
+  <div class="col-md-2 d-flex align-items-end">
+    <button class="btn btn-primary w-100">Показать</button>
+  </div>
+</form>
+
+{% if selected_groups %}
+<table class="table table-bordered text-center">
+<thead>
+<tr class="table-light">
+  <th>День</th>
+  <th>Пара</th>
+  {% for g in selected_groups %}
+  <th>{{ g.name }}</th>
+  {% endfor %}
+</tr>
+</thead>
+<tbody>
+{% for d in range(1,7) %}
+{% for p in range(1,9) %}
+<tr>
+  {% if p == 1 %}<td rowspan="8" class="align-middle fw-bold">{{ days[d] }}</td>{% endif %}
+  <td class="fw-bold">{{ p }}</td>
+  {% for g in selected_groups %}
+  <td style="min-width:150px;">
+    {% set e = table.get((d,p), {}).get(g.name) %}
+    {% if e %}
+      <div class="fw-bold">{{ e.subject }}</div>
+      <div class="small text-muted">{{ e.lesson_type }}</div>
+      <div class="small">{{ e.teacher_short }}</div>
+      <div class="small">{% if e.is_online %}<span class="badge bg-info">Онлайн</span>{% else %}{{ e.room or '' }}{% endif %}</div>
+    {% endif %}
+  </td>
+  {% endfor %}
+</tr>
+{% endfor %}
+{% endfor %}
+</tbody>
+</table>
+{% endif %}
+{% endblock %}

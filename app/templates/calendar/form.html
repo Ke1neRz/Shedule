@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Изменить' if item else 'Добавить' }} день{% endblock %}
+{% block content %}
+<h1>{{ 'Изменить' if item else 'Добавить' }} день</h1>
+<form method="post">
+  <div class="mb-3"><label>Дата</label><input type="date" name="calendar_date" class="form-control" value="{{ item.calendar_date if item else '' }}" required></div>
+  <div class="mb-3 form-check">
+    <input type="checkbox" name="is_working" class="form-check-input" id="iw" value="true" {% if item and item.is_working %}checked{% endif %}>
+    <label class="form-check-label" for="iw">Рабочий день</label>
+  </div>
+  <div class="mb-3 form-check">
+    <input type="checkbox" name="is_holiday" class="form-check-input" id="ih" value="true" {% if item and item.is_holiday %}checked{% endif %}>
+    <label class="form-check-label" for="ih">Праздник</label>
+  </div>
+  <div class="mb-3"><label>Примечание</label><input name="note" class="form-control" value="{{ item.note if item else '' }}"></div>
+  <button class="btn btn-success">Сохранить</button>
+  <a href="/calendar/" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}

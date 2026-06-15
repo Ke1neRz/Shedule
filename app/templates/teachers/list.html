@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Преподаватели{% endblock %}
+{% block content %}
+<h1>Преподаватели</h1>
+<a href="/teachers/add" class="btn btn-primary mb-3">Добавить</a>
+<table class="table table-bordered">
+<thead>
+<tr><th>ФИО</th><th>Степень</th><th>Звание</th><th>Должность</th><th>Кафедра</th><th>Email</th><th></th></tr>
+</thead>
+<tbody>
+{% for t in teachers %}
+<tr>
+  <td>{{ t.last_name }} {{ t.first_name }} {{ t.middle_name or '' }}</td>
+  <td>{{ t.degree or '' }}</td>
+  <td>{{ t.title or '' }}</td>
+  <td>{{ t.position or '' }}</td>
+  <td>{{ t.division_name }}</td>
+  <td>{{ t.email or '' }}</td>
+  <td>
+    <a href="/teachers/{{ t.teacher_id }}/preferences" class="btn btn-sm btn-info">Предпочтения</a>
+    <a href="/teachers/edit/{{ t.teacher_id }}" class="btn btn-sm btn-warning">Изменить</a>
+    <form action="/teachers/delete/{{ t.teacher_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить?')">
+      <button class="btn btn-sm btn-danger">Удалить</button>
+    </form>
+  </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

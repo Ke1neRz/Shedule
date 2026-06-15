@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Нагрузка преподавателей{% endblock %}
+{% block content %}
+<h1>Нагрузка преподавателей за семестр (Query 13)</h1>
+
+<form method="get" class="row g-3 mb-4">
+  <div class="col-md-5">
+    <label>Начало семестра</label>
+    <input type="date" name="semester_start" class="form-control" value="{{ semester_start }}" required>
+  </div>
+  <div class="col-md-5">
+    <label>Конец семестра</label>
+    <input type="date" name="semester_end" class="form-control" value="{{ semester_end }}" required>
+  </div>
+  <div class="col-md-2 d-flex align-items-end">
+    <button class="btn btn-primary w-100">Показать</button>
+  </div>
+</form>
+
+{% if rows %}
+<table class="table table-bordered">
+<thead>
+<tr><th>Преподаватель</th><th>Тип занятия</th><th>Количество</th><th>Минут</th><th>Акад. часов</th></tr>
+</thead>
+<tbody>
+{% for r in rows %}
+<tr>
+  <td>{{ r.teacher }}</td>
+  <td>{{ r.lesson_type }}</td>
+  <td>{{ r.sessions }}</td>
+  <td>{{ r.total_minutes }}</td>
+  <td>{{ r.academic_hours }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Изменить' if entry else 'Добавить' }} занятие{% endblock %}
+{% block content %}
+<h1>{{ 'Изменить' if entry else 'Добавить' }} занятие</h1>
+
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+<form method="post">
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label>Учебная группа</label>
+      <select name="group_id" class="form-select" required>
+        {% for g in groups %}
+        <option value="{{ g.group_id }}" {% if (entry and entry.group_id == g.group_id) or (not entry and preselected_group == g.group_id) %}selected{% endif %}>{{ g.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-6 mb-3">
+      <label>Учебное занятие</label>
+      <select name="lesson_id" class="form-select" required>
+        {% for l in lessons %}
+        <option value="{{ l.lesson_id }}" {% if entry and entry.lesson_id == l.lesson_id %}selected{% endif %}>{{ l.subject_name }} — {{ l.lesson_type }} ({{ l.duration_minutes }} мин)</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label>День и пара</label>
+      <select name="timeslot_id" class="form-select" required>
+        {% for t in timeslots %}
+        {% set dn = {1:'Пн',2:'Вт',3:'Ср',4:'Чт',5:'Пт',6:'Сб'}[t.day_of_week] %}
+        <option value="{{ t.timeslot_id }}" {% if entry and entry.timeslot_id == t.timeslot_id %}selected{% endif %}>{{ dn }} — {{ t.pair_number }}-я пара ({{ t.start_time }}–{{ t.end_time }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-6 mb-3">
+      <label>Преподаватель</label>
+      <select name="teacher_id" class="form-select" required>
+        {% for t in teachers %}
+        <option value="{{ t.teacher_id }}" {% if entry and entry.teacher_id == t.teacher_id %}selected{% endif %}>{{ t.full_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label>Аудитория</label>
+      <select name="room_id" class="form-select">
+        <option value="">(онлайн)</option>
+        {% for r in rooms %}
+        <option value="{{ r.room_id }}" {% if entry and entry.room_id == r.room_id %}selected{% endif %}>{{ r.label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-6 mb-3">
+      <label>Дата</label>
+      <input type="date" name="entry_date" class="form-control" value="{{ entry.entry_date if entry else preselected_date }}" required>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <label>Чётность недели</label>
+      <select name="week_parity" class="form-select">
+        <option value="all" {% if entry and entry.week_parity == 'all' %}selected{% endif %}>Все недели</option>
+        <option value="even" {% if entry and entry.week_parity == 'even' %}selected{% endif %}>Чётные</option>
+        <option value="odd" {% if entry and entry.week_parity == 'odd' %}selected{% endif %}>Нечётные</option>
+      </select>
+    </div>
+    <div class="col-md-4 mb-3 form-check mt-4">
+      <input type="checkbox" name="is_online" class="form-check-input" id="io" value="true" {% if entry and entry.is_online %}checked{% endif %}>
+      <label class="form-check-label" for="io">Онлайн</label>
+    </div>
+    <div class="col-md-4 mb-3">
+      <label>Ссылка (если онлайн)</label>
+      <input name="online_link" class="form-control" value="{{ entry.online_link if entry else '' }}">
+    </div>
+  </div>
+  <button class="btn btn-success">Сохранить</button>
+  <a href="/schedule/" class="btn btn-secondary">Отмена</a>
+</form>
+
+<script>
+// при выборе онлайн сбрасываем аудиторию
+const io = document.getElementById('io');
+const rs = document.querySelector('select[name="room_id"]');
+io.addEventListener('change', () => { if(io.checked) rs.value = ''; });
+rs.addEventListener('change', () => { if(rs.value) io.checked = false; });
+</script>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Помещения{% endblock %}
+{% block content %}
+<h1>Корпуса</h1>
+<a href="/rooms/buildings/add" class="btn btn-primary mb-3">Добавить корпус</a>
+<table class="table table-bordered">
+<thead><tr><th>Название</th><th>Адрес</th><th>Аудиторий</th><th></th></tr></thead>
+<tbody>
+{% for b in buildings %}
+<tr>
+  <td>{{ b.name }}</td>
+  <td>{{ b.address or '' }}</td>
+  <td>{{ b.room_count }}</td>
+  <td>
+    <a href="/rooms/buildings/edit/{{ b.building_id }}" class="btn btn-sm btn-warning">Изменить</a>
+    <form action="/rooms/buildings/delete/{{ b.building_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить?')">
+      <button class="btn btn-sm btn-danger">Удалить</button>
+    </form>
+  </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+<h1>Аудитории</h1>
+<a href="/rooms/rooms/add" class="btn btn-primary mb-3">Добавить аудиторию</a>
+<table class="table table-bordered">
+<thead><tr><th>Номер</th><th>Корпус</th><th>Тип</th><th>Вместимость</th><th></th></tr></thead>
+<tbody>
+{% for r in rooms %}
+<tr>
+  <td>{{ r.name }}</td>
+  <td>{{ r.building_name }}</td>
+  <td>{{ r.room_type }}</td>
+  <td>{{ r.capacity }}</td>
+  <td>
+    <a href="/rooms/rooms/edit/{{ r.room_id }}" class="btn btn-sm btn-warning">Изменить</a>
+    <form action="/rooms/rooms/delete/{{ r.room_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить?')">
+      <button class="btn btn-sm btn-danger">Удалить</button>
+    </form>
+  </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

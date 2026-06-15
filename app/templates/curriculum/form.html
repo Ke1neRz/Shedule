@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Изменить' if curriculum else 'Добавить' }} план{% endblock %}
+{% block content %}
+<h1>{{ 'Изменить' if curriculum else 'Добавить' }} учебный план</h1>
+<form method="post">
+  <div class="mb-3"><label>Название</label><input name="name" class="form-control" value="{{ curriculum.name if curriculum else '' }}" required></div>
+  <div class="mb-3"><label>Код направления</label><input name="direction_code" class="form-control" value="{{ curriculum.direction_code if curriculum else '' }}"></div>
+  <div class="row">
+    <div class="col-md-4 mb-3"><label>Семестр</label><input type="number" name="semester" class="form-control" value="{{ curriculum.semester if curriculum else 1 }}" required></div>
+    <div class="col-md-4 mb-3"><label>Учебный год</label><input type="number" name="academic_year" class="form-control" value="{{ curriculum.academic_year if curriculum else 2024 }}" required></div>
+    <div class="col-md-4 mb-3"><label>Недель</label><input type="number" name="weeks" class="form-control" value="{{ curriculum.weeks if curriculum else 18 }}" required></div>
+  </div>
+  <button class="btn btn-success">Сохранить</button>
+  <a href="/curriculum/" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Изменить' if subject else 'Добавить' }} дисциплину{% endblock %}
+{% block content %}
+<h1>{{ 'Изменить' if subject else 'Добавить' }} дисциплину</h1>
+<form method="post">
+  <div class="mb-3"><label>Название</label><input name="name" class="form-control" value="{{ subject.name if subject else '' }}" required></div>
+  <div class="row">
+    <div class="col-md-3 mb-3"><label>Лекции (час)</label><input type="number" name="lecture_hours" class="form-control" value="{{ subject.lecture_hours if subject else 0 }}"></div>
+    <div class="col-md-3 mb-3"><label>Практики (час)</label><input type="number" name="practice_hours" class="form-control" value="{{ subject.practice_hours if subject else 0 }}"></div>
+    <div class="col-md-3 mb-3"><label>Лабораторные (час)</label><input type="number" name="lab_hours" class="form-control" value="{{ subject.lab_hours if subject else 0 }}"></div>
+    <div class="col-md-3 mb-3">
+      <label>Отчётность</label>
+      <select name="assessment_type" class="form-select">
+        <option value="pass" {% if subject and subject.assessment_type == 'pass' %}selected{% endif %}>Зачёт</option>
+        <option value="exam" {% if subject and subject.assessment_type == 'exam' %}selected{% endif %}>Экзамен</option>
+      </select>
+    </div>
+  </div>
+  <button class="btn btn-success">Сохранить</button>
+  <a href="/curriculum/{{ curriculum.curriculum_id }}/subjects" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}

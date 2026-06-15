@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Изменить' if preference else 'Добавить' }} предпочтение{% endblock %}
+{% block content %}
+<h1>{{ 'Изменить' if preference else 'Добавить' }} предпочтение</h1>
+<p>Преподаватель: {{ teacher.last_name }} {{ teacher.first_name }}</p>
+<form method="post">
+  <div class="mb-3">
+    <label>Пара</label>
+    <select name="pair_number" class="form-select" required>
+      {% for t in timeslots %}
+      {% set dn = {1:'Пн',2:'Вт',3:'Ср',4:'Чт',5:'Пт',6:'Сб'}[t.day_of_week] %}
+      <option value="{{ t.pair_number }}" data-day="{{ t.day_of_week }}" {% if preference and preference.pair_number == t.pair_number and preference.day_of_week == t.day_of_week %}selected{% endif %}>
+        {{ dn }} — {{ t.pair_number }}-я пара ({{ t.start_time }}–{{ t.end_time }})
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label>День недели</label>
+    <select name="day_of_week" class="form-select" required>
+      <option value="1" {% if preference and preference.day_of_week == 1 %}selected{% endif %}>Пн</option>
+      <option value="2" {% if preference and preference.day_of_week == 2 %}selected{% endif %}>Вт</option>
+      <option value="3" {% if preference and preference.day_of_week == 3 %}selected{% endif %}>Ср</option>
+      <option value="4" {% if preference and preference.day_of_week == 4 %}selected{% endif %}>Чт</option>
+      <option value="5" {% if preference and preference.day_of_week == 5 %}selected{% endif %}>Пт</option>
+      <option value="6" {% if preference and preference.day_of_week == 6 %}selected{% endif %}>Сб</option>
+    </select>
+  </div>
+  <div class="mb-3 form-check">
+    <input type="checkbox" name="is_preferred" class="form-check-input" id="ip" value="true" {% if preference and preference.is_preferred %}checked{% endif %}>
+    <label class="form-check-label" for="ip">Предпочтительно</label>
+  </div>
+  <button class="btn btn-success">Сохранить</button>
+  <a href="/teachers/{{ teacher.teacher_id }}/preferences" class="btn btn-secondary">Отмена</a>
+</form>
+
+<script>
+// синхронизация day_of_week и pair_number (упрощённо)
+const pairSelect = document.querySelector('select[name="pair_number"]');
+const daySelect = document.querySelector('select[name="day_of_week"]');
+pairSelect.addEventListener('change', function() {
+  const opt = this.options[this.selectedIndex];
+  daySelect.value = opt.getAttribute('data-day');
+});
+</script>
+{% endblock %}

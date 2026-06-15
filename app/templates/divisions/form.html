@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Изменить' if division else 'Добавить' }} подразделение{% endblock %}
+{% block content %}
+<h1>{{ 'Изменить' if division else 'Добавить' }} подразделение</h1>
+<form method="post">
+  <div class="mb-3">
+    <label>Название</label>
+    <input name="name" class="form-control" value="{{ division.name if division else '' }}" required>
+  </div>
+  <div class="mb-3">
+    <label>Родитель</label>
+    <select name="parent_id" class="form-select">
+      <option value="">(корневое)</option>
+      {% for p in parents %}
+      <option value="{{ p.division_id }}" {% if division and division.parent_id == p.division_id %}selected{% endif %}>{{ p.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label>Университет</label>
+    <select name="university_id" class="form-select" required>
+      {% for u in universities %}
+      <option value="{{ u.university_id }}" {% if division and division.university_id == u.university_id %}selected{% endif %}>{{ u.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button class="btn btn-success">Сохранить</button>
+  <a href="/divisions/" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}

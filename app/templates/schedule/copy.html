@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Копирование расписания{% endblock %}
+{% block content %}
+<h1>Копировать расписание</h1>
+<form method="post">
+  <div class="mb-3">
+    <label>Учебная группа</label>
+    <select name="group_id" class="form-select" required>
+      {% for g in groups %}
+      <option value="{{ g.group_id }}">{{ g.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <label>Исходная дата начала</label>
+      <input type="date" name="date_from" class="form-control" required>
+    </div>
+    <div class="col-md-4 mb-3">
+      <label>Исходная дата окончания</label>
+      <input type="date" name="date_to" class="form-control" required>
+    </div>
+    <div class="col-md-4 mb-3">
+      <label>Сдвиг (недель)</label>
+      <input type="number" name="offset_weeks" class="form-control" value="1" required>
+    </div>
+  </div>
+  <button class="btn btn-primary">Копировать</button>
+  <a href="/schedule/" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}

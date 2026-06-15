@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Зачёты, экзамены, консультации{% endblock %}
+{% block content %}
+<h1>Расписание консультаций, зачётов и экзаменов</h1>
+
+<form method="get" class="row g-3 mb-4">
+  <div class="col-md-4">
+    <label>Группы (Ctrl для нескольких)</label>
+    <select name="group_ids" class="form-select" multiple size="6" required>
+      {% for g in groups %}
+      <option value="{{ g.group_id }}" {% if g.group_id in selected_ids %}selected{% endif %}>{{ g.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-3">
+    <label>С даты</label>
+    <input type="date" name="date_from" class="form-control" value="{{ date_from }}" required>
+  </div>
+  <div class="col-md-3">
+    <label>По дату</label>
+    <input type="date" name="date_to" class="form-control" value="{{ date_to }}" required>
+  </div>
+  <div class="col-md-2 d-flex align-items-end">
+    <button class="btn btn-primary w-100">Показать</button>
+  </div>
+</form>
+
+{% if entries %}
+<table class="table table-bordered">
+<thead>
+<tr><th>Группа</th><th>Предмет</th><th>Тип</th><th>Дата</th><th>Пара</th><th>Время</th><th>Преподаватель</th><th>Аудитория</th></tr>
+</thead>
+<tbody>
+{% for e in entries %}
+<tr>
+  <td>{{ e.group_name }}</td>
+  <td>{{ e.subject }}</td>
+  <td>{{ e.lesson_type }}</td>
+  <td>{{ e.entry_date }}</td>
+  <td>{{ e.pair_number }}</td>
+  <td>{{ e.start_time }}–{{ e.end_time }}</td>
+  <td>{{ e.teacher_short }}</td>
+  <td>{% if e.is_online %}<span class="badge bg-info">Онлайн</span>{% else %}{{ e.room or '' }} {{ '('+e.building+')' if e.building else '' }}{% endif %}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Изменить' if group else 'Добавить' }} учебную группу{% endblock %}
+{% block content %}
+<h1>{{ 'Изменить' if group else 'Добавить' }} учебную группу</h1>
+<form method="post">
+  <div class="mb-3"><label>Название</label><input name="name" class="form-control" value="{{ group.name if group else '' }}" required></div>
+  <div class="mb-3"><label>Количество студентов</label><input type="number" name="student_count" class="form-control" value="{{ group.student_count if group else 20 }}" required></div>
+  <div class="mb-3">
+    <label>Учебный план</label>
+    <select name="curriculum_id" class="form-select" required>
+      {% for c in curricula %}
+      <option value="{{ c.curriculum_id }}" {% if group and group.curriculum_id == c.curriculum_id %}selected{% endif %}>{{ c.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label>Академические группы (можно несколько)</label>
+    <select name="academic_group_ids" class="form-select" multiple size="6">
+      {% for a in academic %}
+      <option value="{{ a.academic_group_id }}" {% if a.academic_group_id in selected_ids %}selected{% endif %}>{{ a.group_number }}</option>
+      {% endfor %}
+    </select>
+    <div class="form-text">Удерживайте Ctrl для выбора нескольких.</div>
+  </div>
+  <button class="btn btn-success">Сохранить</button>
+  <a href="/groups/" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}

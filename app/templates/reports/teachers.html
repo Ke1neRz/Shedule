@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Занятость преподавателей{% endblock %}
+{% block content %}
+<h1>План занятости преподавателей</h1>
+
+<form method="get" class="row g-3 mb-4">
+  <div class="col-md-4">
+    <label>Подразделение</label>
+    <select name="division_id" class="form-select" required>
+      <option value="">-- выберите --</option>
+      {% for d in divisions %}
+      <option value="{{ d.division_id }}" {% if d.division_id == division_id %}selected{% endif %}>{{ d.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-3">
+    <label>С даты</label>
+    <input type="date" name="date_from" class="form-control" value="{{ date_from }}" required>
+  </div>
+  <div class="col-md-3">
+    <label>По дату</label>
+    <input type="date" name="date_to" class="form-control" value="{{ date_to }}" required>
+  </div>
+  <div class="col-md-2 d-flex align-items-end">
+    <button class="btn btn-primary w-100">Показать</button>
+  </div>
+</form>
+
+{% if entries %}
+<table class="table table-bordered">
+<thead>
+<tr><th>Преподаватель</th><th>Дата</th><th>День</th><th>Пара</th><th>Время</th><th>Предмет</th><th>Тип</th><th>Группа</th><th>Аудитория</th></tr>
+</thead>
+<tbody>
+{% for e in entries %}
+<tr>
+  <td>{{ e.teacher }}</td>
+  <td>{{ e.entry_date }}</td>
+  <td>{{ days[e.day_of_week] }}</td>
+  <td>{{ e.pair_number }}</td>
+  <td>{{ e.start_time }}–{{ e.end_time }}</td>
+  <td>{{ e.subject }}</td>
+  <td>{{ e.lesson_type }}</td>
+  <td>{{ e.study_group }}</td>
+  <td>{{ e.room or '' }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endif %}
+{% endblock %}

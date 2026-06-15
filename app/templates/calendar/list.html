@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Календарь{% endblock %}
+{% block content %}
+<h1>Рабочий календарь</h1>
+<a href="/calendar/add" class="btn btn-primary mb-3">Добавить день</a>
+<table class="table table-bordered">
+<thead><tr><th>Дата</th><th>Рабочий</th><th>Праздник</th><th>Примечание</th><th></th></tr></thead>
+<tbody>
+{% for d in dates %}
+<tr>
+  <td>{{ d.calendar_date }}</td>
+  <td>{{ 'Да' if d.is_working else 'Нет' }}</td>
+  <td>{{ 'Да' if d.is_holiday else 'Нет' }}</td>
+  <td>{{ d.note or '' }}</td>
+  <td>
+    <a href="/calendar/edit/{{ d.calendar_id }}" class="btn btn-sm btn-warning">Изменить</a>
+    <form action="/calendar/delete/{{ d.calendar_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить?')">
+      <button class="btn btn-sm btn-danger">Удалить</button>
+    </form>
+  </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

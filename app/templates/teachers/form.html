@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Изменить' if teacher else 'Добавить' }} преподавателя{% endblock %}
+{% block content %}
+<h1>{{ 'Изменить' if teacher else 'Добавить' }} преподавателя</h1>
+<form method="post">
+  <div class="row">
+    <div class="col-md-4 mb-3"><label>Фамилия</label><input name="last_name" class="form-control" value="{{ teacher.last_name if teacher else '' }}" required></div>
+    <div class="col-md-4 mb-3"><label>Имя</label><input name="first_name" class="form-control" value="{{ teacher.first_name if teacher else '' }}" required></div>
+    <div class="col-md-4 mb-3"><label>Отчество</label><input name="middle_name" class="form-control" value="{{ teacher.middle_name if teacher else '' }}"></div>
+  </div>
+  <div class="row">
+    <div class="col-md-4 mb-3"><label>Степень</label><input name="degree" class="form-control" value="{{ teacher.degree if teacher else '' }}"></div>
+    <div class="col-md-4 mb-3"><label>Звание</label><input name="title" class="form-control" value="{{ teacher.title if teacher else '' }}"></div>
+    <div class="col-md-4 mb-3"><label>Должность</label><input name="position" class="form-control" value="{{ teacher.position if teacher else '' }}"></div>
+  </div>
+  <div class="mb-3"><label>Email</label><input name="email" class="form-control" value="{{ teacher.email if teacher else '' }}"></div>
+  <div class="mb-3">
+    <label>Подразделение</label>
+    <select name="division_id" class="form-select" required>
+      {% for d in divisions %}
+      <option value="{{ d.division_id }}" {% if teacher and teacher.division_id == d.division_id %}selected{% endif %}>{{ d.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button class="btn btn-success">Сохранить</button>
+  <a href="/teachers/" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}

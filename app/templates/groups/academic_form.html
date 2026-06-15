@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Изменить' if group else 'Добавить' }} академическую группу{% endblock %}
+{% block content %}
+<h1>{{ 'Изменить' if group else 'Добавить' }} академическую группу</h1>
+<form method="post">
+  <div class="mb-3"><label>Номер группы</label><input name="group_number" class="form-control" value="{{ group.group_number if group else '' }}" required></div>
+  <div class="mb-3">
+    <label>Учебный план</label>
+    <select name="curriculum_id" class="form-select" required>
+      {% for c in curricula %}
+      <option value="{{ c.curriculum_id }}" {% if group and group.curriculum_id == c.curriculum_id %}selected{% endif %}>{{ c.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button class="btn btn-success">Сохранить</button>
+  <a href="/groups/" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}

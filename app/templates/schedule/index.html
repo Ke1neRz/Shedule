@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Расписание{% endblock %}
+{% block content %}
+<h1>Расписание</h1>
+
+<form method="get" class="row g-3 mb-4">
+  <div class="col-md-3">
+    <label>Учебная группа</label>
+    <select name="group_id" class="form-select" required>
+      <option value="">-- выберите --</option>
+      {% for g in groups %}
+      <option value="{{ g.group_id }}" {% if g.group_id == group_id %}selected{% endif %}>{{ g.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-3">
+    <label>С даты</label>
+    <input type="date" name="date_from" class="form-control" value="{{ date_from or '' }}" required>
+  </div>
+  <div class="col-md-3">
+    <label>По дату</label>
+    <input type="date" name="date_to" class="form-control" value="{{ date_to or '' }}" required>
+  </div>
+  <div class="col-md-3 d-flex align-items-end">
+    <button class="btn btn-primary w-100">Показать</button>
+  </div>
+</form>
+
+{% if warning %}
+<div class="alert alert-warning">{{ warning }}</div>
+{% endif %}
+
+{% if group_id %}
+<h3>Академические группы: {{ academic_groups | join(', ') }}</h3>
+<a href="/schedule/add?group_id={{ group_id }}&date={{ date_from }}" class="btn btn-success mb-3">Добавить занятие</a>
+<a href="/schedule/copy" class="btn btn-info mb-3">Копировать расписание</a>
+
+<table class="table table-bordered text-center">
+<thead>
+<tr class="table-light">
+  <th>Пара / Время</th>
+  {% for d, dn in days.items() %}
+  <th>{{ dn }}</th>
+  {% endfor %}
+</tr>
+</thead>
+<tbody>
+{% for pair in range(1,9) %}
+<tr>
+  <td class="fw-bold">{{ pair }}</td>
+  {% for d in range(1,7) %}
+  <td style="min-width:180px;">
+    {% for e in table[d][pair] %}
+    <div class="border rounded p-1 mb-1 bg-white">
+      <div class="fw-bold">{{ e.subject }}</div>
+      <div class="text-muted small">{{ e.lesson_type }}</div>
+      <div>{{ e.teacher_short }}</div>
+      {% if e.is_online %}
+        <div><span class="badge bg-info">Онлайн</span></div>
+        {% if e.online_link %}<div class="small"><a href="{{ e.online_link }}" target="_blank">ссылка</a></div>{% endif %}
+      {% else %}
+        <div class="small">{{ e.room or '' }} {{ '('+e.building+')' if e.building else '' }}</div>
+      {% endif %}
+      {% if e.week_parity != 'all' %}
+        <div class="badge bg-secondary">{{ 'чёт' if e.week_parity=='even' else 'нечёт' }}</div>
+      {% endif %}
+      <div class="mt-1">
+        <a href="/schedule/edit/{{ e.entry_id }}" class="btn btn-sm btn-outline-warning">✎</a>
+        <form action="/schedule/delete/{{ e.entry_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить?')">
+          <button class="btn btn-sm btn-outline-danger">✕</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </td>
+  {% endfor %}
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endif %}
+{% endblock %}

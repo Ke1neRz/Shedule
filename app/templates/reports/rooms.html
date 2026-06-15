@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Загрузка аудиторий{% endblock %}
+{% block content %}
+<h1>Сводная загрузка учебных помещений</h1>
+
+<form method="get" class="row g-3 mb-4">
+  <div class="col-md-5">
+    <label>С даты</label>
+    <input type="date" name="date_from" class="form-control" value="{{ date_from }}" required>
+  </div>
+  <div class="col-md-5">
+    <label>По дату</label>
+    <input type="date" name="date_to" class="form-control" value="{{ date_to }}" required>
+  </div>
+  <div class="col-md-2 d-flex align-items-end">
+    <button class="btn btn-primary w-100">Показать</button>
+  </div>
+</form>
+
+{% if rows %}
+<table class="table table-bordered">
+<thead>
+<tr><th>Корпус</th><th>Тип</th><th>Аудитория</th><th>День</th><th>Пара</th><th>Занятий</th><th>Загрузка %</th></tr>
+</thead>
+<tbody>
+{% for r in rows %}
+<tr>
+  <td>{{ r.building }}</td>
+  <td>{{ r.room_type }}</td>
+  <td>{{ r.room }}</td>
+  <td>{{ days[r.day_of_week] if r.day_of_week else '' }}</td>
+  <td>{{ r.pair_number or '' }}</td>
+  <td>{{ r.sessions_count }}</td>
+  <td>{{ (r.sessions_count * 100.0 / total) | round(2) }}%</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endif %}
+{% endblock %}

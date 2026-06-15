@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Аудит расписания{% endblock %}
+{% block content %}
+<h1>Аудит расписания</h1>
+
+<h2 class="mt-4">Query 6 — Пересечения в расписании группы</h2>
+{% if overlaps %}
+<table class="table table-bordered table-danger">
+<thead><tr><th>Группа</th><th>Дата</th><th>День</th><th>Пара</th><th>Пересечений</th></tr></thead>
+<tbody>
+{% for r in overlaps %}
+<tr>
+  <td>{{ r.group_name }}</td>
+  <td>{{ r.entry_date }}</td>
+  <td>{{ days[r.day_of_week] }}</td>
+  <td>{{ r.pair_number }}</td>
+  <td>{{ r.overlaps }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}
+<p class="text-success">Нарушений не найдено.</p>
+{% endif %}
+
+<h2 class="mt-4">Query 7 — Лаборатории в неподходящих аудиториях</h2>
+{% if lab_wrong_rooms %}
+<table class="table table-bordered table-danger">
+<thead><tr><th>ID</th><th>Группа</th><th>Предмет</th><th>Аудитория</th><th>Тип аудитории</th></tr></thead>
+<tbody>
+{% for r in lab_wrong_rooms %}
+<tr>
+  <td>{{ r.entry_id }}</td>
+  <td>{{ r.group_name }}</td>
+  <td>{{ r.subject }}</td>
+  <td>{{ r.room }}</td>
+  <td>{{ r.room_type }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}
+<p class="text-success">Нарушений не найдено.</p>
+{% endif %}
+
+<h2 class="mt-4">Query 8 — Недостаточная вместимость аудиторий</h2>
+{% if capacity_violations %}
+<table class="table table-bordered table-danger">
+<thead><tr><th>ID</th><th>Группа</th><th>Студентов</th><th>Аудитория</th><th>Вместимость</th></tr></thead>
+<tbody>
+{% for r in capacity_violations %}
+<tr>
+  <td>{{ r.entry_id }}</td>
+  <td>{{ r.group_name }}</td>
+  <td>{{ r.student_count }}</td>
+  <td>{{ r.room }}</td>
+  <td>{{ r.capacity }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}
+<p class="text-success">Нарушений не найдено.</p>
+{% endif %}
+
+<h2 class="mt-4">Query 9 — Преподаватели с более чем 5 парами в день</h2>
+{% if teacher_overload %}
+<table class="table table-bordered table-danger">
+<thead><tr><th>Преподаватель</th><th>Дата</th><th>Пар в день</th></tr></thead>
+<tbody>
+{% for r in teacher_overload %}
+<tr>
+  <td>{{ r.teacher }}</td>
+  <td>{{ r.entry_date }}</td>
+  <td>{{ r.pairs_per_day }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}
+<p class="text-success">Нарушений не найдено.</p>
+{% endif %}
+
+<h2 class="mt-4">Query 10 — Группы с более чем 5 парами в день</h2>
+{% if group_overload %}
+<table class="table table-bordered table-danger">
+<thead><tr><th>Группа</th><th>Дата</th><th>Пар в день</th></tr></thead>
+<tbody>
+{% for r in group_overload %}
+<tr>
+  <td>{{ r.group_name }}</td>
+  <td>{{ r.entry_date }}</td>
+  <td>{{ r.pairs_per_day }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}
+<p class="text-success">Нарушений не найдено.</p>
+{% endif %}
+{% endblock %}

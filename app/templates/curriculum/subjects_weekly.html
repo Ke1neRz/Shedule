@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Дисциплины с расчётом часов в неделю{% endblock %}
+{% block content %}
+<h1>Дисциплины плана: {{ curriculum.name }}</h1>
+<h4>Query 14 — Расчёт часов в неделю (семестр {{ curriculum.weeks }} недель)</h4>
+
+<a href="/curriculum/{{ curriculum.curriculum_id }}/subjects" class="btn btn-secondary mb-3">Назад к дисциплинам</a>
+
+<table class="table table-bordered">
+<thead>
+<tr><th>Дисциплина</th><th>Лекции</th><th>Практики</th><th>Лабы</th><th>Отчётность</th><th>Лекций/нед</th><th>Практик/нед</th><th>Лаб/нед</th></tr>
+</thead>
+<tbody>
+{% for r in rows %}
+<tr>
+  <td>{{ r.subject }}</td>
+  <td>{{ r.lecture_hours }}</td>
+  <td>{{ r.practice_hours }}</td>
+  <td>{{ r.lab_hours }}</td>
+  <td>{{ 'Экзамен' if r.assessment_type == 'exam' else 'Зачёт' }}</td>
+  <td>{{ r.lectures_per_week }}</td>
+  <td>{{ r.practice_per_week }}</td>
+  <td>{{ r.labs_per_week }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

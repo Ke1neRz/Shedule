@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Длительность зачётов и экзаменов{% endblock %}
+{% block content %}
+<h1>Расчёт длительности зачётов и экзаменов (Query 15)</h1>
+
+<table class="table table-bordered">
+<thead>
+<tr><th>Группа</th><th>Студентов</th><th>Предмет</th><th>Тип</th><th>Минут необходимо</th><th>Пар требуется</th></tr>
+</thead>
+<tbody>
+{% for r in rows %}
+<tr>
+  <td>{{ r.group_name }}</td>
+  <td>{{ r.student_count }}</td>
+  <td>{{ r.subject }}</td>
+  <td>{{ r.lesson_type }}</td>
+  <td>{{ r.required_minutes }}</td>
+  <td>{{ r.pairs_needed }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

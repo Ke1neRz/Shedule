@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Расписание пар{% endblock %}
+{% block content %}
+<h1>Справочник пар (звонки)</h1>
+<table class="table table-bordered">
+<thead><tr><th>День недели</th><th>Номер пары</th><th>Начало</th><th>Конец</th></tr></thead>
+<tbody>
+{% for t in timeslots %}
+<tr>
+  <td>
+    {% if t.day_of_week == 1 %}Пн{% elif t.day_of_week == 2 %}Вт{% elif t.day_of_week == 3 %}Ср{% elif t.day_of_week == 4 %}Чт{% elif t.day_of_week == 5 %}Пт{% elif t.day_of_week == 6 %}Сб{% endif %}
+  </td>
+  <td>{{ t.pair_number }}</td>
+  <td>{{ t.start_time }}</td>
+  <td>{{ t.end_time }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}
