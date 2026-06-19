@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Request, Form, Depends
-from fastapi.responses import RedirectResponse, HTMLResponse
-from fastapi.templating import Jinja2Templates
+from fastapi import APIRouter, Depends, Form, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
 import asyncpg
+
+from app.auth import require_teacher
 from app.db import get_conn
+from app.templates_setup import templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
 
 
 @router.get("/")
@@ -34,7 +35,7 @@ async def list_rooms(request: Request, conn=Depends(get_conn)):
 
 
 @router.get("/buildings/add")
-async def add_building_form(request: Request):
+async def add_building_form(request: Request, user=Depends(require_teacher)):
     return templates.TemplateResponse(
         "rooms/building_form.html",
         {"request": request, "building": None},
@@ -46,6 +47,7 @@ async def add_building_submit(
     name: str = Form(...),
     address: str = Form(""),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -58,7 +60,12 @@ async def add_building_submit(
 
 
 @router.get("/buildings/edit/{building_id}")
-async def edit_building_form(request: Request, building_id: int, conn=Depends(get_conn)):
+async def edit_building_form(
+    request: Request,
+    building_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     building = await conn.fetchrow(
         """
         SELECT *
@@ -79,6 +86,7 @@ async def edit_building_submit(
     name: str = Form(...),
     address: str = Form(""),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -92,7 +100,11 @@ async def edit_building_submit(
 
 
 @router.post("/buildings/delete/{building_id}")
-async def delete_building(building_id: int, conn=Depends(get_conn)):
+async def delete_building(
+    building_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     await conn.execute(
         """
         DELETE FROM building
@@ -105,7 +117,11 @@ async def delete_building(building_id: int, conn=Depends(get_conn)):
 
 # Rooms
 @router.get("/rooms/add")
-async def add_room_form(request: Request, conn=Depends(get_conn)):
+async def add_room_form(
+    request: Request,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     buildings = await conn.fetch(
         """
         SELECT building_id, name
@@ -126,6 +142,7 @@ async def add_room_submit(
     room_type: str = Form(...),
     capacity: int = Form(...),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -138,7 +155,12 @@ async def add_room_submit(
 
 
 @router.get("/rooms/edit/{room_id}")
-async def edit_room_form(request: Request, room_id: int, conn=Depends(get_conn)):
+async def edit_room_form(
+    request: Request,
+    room_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     room = await conn.fetchrow(
         """
         SELECT *
@@ -168,6 +190,7 @@ async def edit_room_submit(
     room_type: str = Form(...),
     capacity: int = Form(...),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -184,7 +207,11 @@ async def edit_room_submit(
 
 
 @router.post("/rooms/delete/{room_id}")
-async def delete_room(room_id: int, conn=Depends(get_conn)):
+async def delete_room(
+    room_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     await conn.execute(
         """
         DELETE FROM room
@@ -215,7 +242,11 @@ async def list_distances(request: Request, conn=Depends(get_conn)):
 
 
 @router.get("/distances/add")
-async def add_distance_form(request: Request, conn=Depends(get_conn)):
+async def add_distance_form(
+    request: Request,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     buildings = await conn.fetch(
         """
         SELECT building_id, name
@@ -235,6 +266,7 @@ async def add_distance_submit(
     to_building_id: int = Form(...),
     distance_minutes: int = Form(...),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     if from_building_id == to_building_id:
         return HTMLResponse("<h1>Ошибка</h1><p>Корпуса должны быть разными.</p>", status_code=400)
@@ -248,7 +280,6 @@ async def add_distance_submit(
             """,
             from_building_id, to_building_id, distance_minutes,
         )
-        # Also insert reverse direction if not exists
         await conn.execute(
             """
             INSERT INTO building_distance (from_building_id, to_building_id, distance_minutes)
@@ -264,7 +295,10 @@ async def add_distance_submit(
 
 @router.post("/distances/delete/{from_building_id}/{to_building_id}")
 async def delete_distance(
-    from_building_id: int, to_building_id: int, conn=Depends(get_conn)
+    from_building_id: int,
+    to_building_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """

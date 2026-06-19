@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     db_name: str
     app_host: str
     app_port: int
+    session_secret: str = "change-me-in-production-please-use-env-variable"
 
     @property
     def database_url(self) -> str:

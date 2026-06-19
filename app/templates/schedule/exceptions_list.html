@@ -5,7 +5,9 @@
   <h1><i class="bi bi-exclamation-circle"></i> Исключения расписания</h1>
   <div class="btn-group">
     <a href="/schedule/" class="btn btn-outline-secondary"><i class="bi bi-calendar3"></i> К расписанию</a>
+    {% if user and user.role == 'teacher' %}
     <a href="/schedule/templates" class="btn btn-outline-primary"><i class="bi bi-calendar-week"></i> Шаблоны</a>
+    {% endif %}
   </div>
 </div>
 
@@ -38,9 +40,11 @@
   </div>
 </form>
 
+{% if user and user.role == 'teacher' %}
 <div class="mb-3">
   <a href="/schedule/exceptions/add{% if group_id %}?group_id={{ group_id }}{% endif %}" class="btn btn-success"><i class="bi bi-plus-lg"></i> Добавить исключение</a>
 </div>
+{% endif %}
 
 <div class="table-responsive">
 <table class="table table-bordered table-hover align-middle">
@@ -56,7 +60,7 @@
       <th>Преподаватель</th>
       <th>Аудитория</th>
       <th>Примечание</th>
-      <th style="width:90px">Действия</th>
+      {% if user and user.role == 'teacher' %}<th style="width:90px">Действия</th>{% endif %}
     </tr>
   </thead>
   <tbody>
@@ -111,15 +115,17 @@
         {% endif %}
       </td>
       <td><small>{{ e.note or '' }}</small></td>
+      {% if user and user.role == 'teacher' %}
       <td>
         <a href="/schedule/exceptions/edit/{{ e.exception_id }}" class="btn btn-sm btn-outline-warning" title="Изменить">✎</a>
         <form action="/schedule/exceptions/delete/{{ e.exception_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить исключение?')">
           <button class="btn btn-sm btn-outline-danger" title="Удалить">✕</button>
         </form>
       </td>
+      {% endif %}
     </tr>
   {% else %}
-    <tr><td colspan="11" class="text-center text-muted py-4">Нет исключений в выбранном диапазоне</td></tr>
+    <tr><td colspan="{% if user and user.role == 'teacher' %}11{% else %}10{% endif %}" class="text-center text-muted py-4">Нет исключений в выбранном диапазоне</td></tr>
   {% endfor %}
   </tbody>
 </table>

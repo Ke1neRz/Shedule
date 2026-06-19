@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Request, Form, Depends
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
-from fastapi.templating import Jinja2Templates
+
+from app.auth import require_teacher
 from app.db import get_conn
+from app.templates_setup import templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
 
 
 @router.get("/")
@@ -23,7 +24,7 @@ async def list_universities(request: Request, conn=Depends(get_conn)):
 
 
 @router.get("/add")
-async def add_form(request: Request):
+async def add_form(request: Request, user=Depends(require_teacher)):
     return templates.TemplateResponse(
         "universities/form.html",
         {"request": request, "university": None},
@@ -35,6 +36,7 @@ async def add_submit(
     name: str = Form(...),
     address: str = Form(""),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -47,7 +49,12 @@ async def add_submit(
 
 
 @router.get("/edit/{university_id}")
-async def edit_form(request: Request, university_id: int, conn=Depends(get_conn)):
+async def edit_form(
+    request: Request,
+    university_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     row = await conn.fetchrow(
         """
         SELECT *
@@ -68,6 +75,7 @@ async def edit_submit(
     name: str = Form(...),
     address: str = Form(""),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -81,7 +89,11 @@ async def edit_submit(
 
 
 @router.post("/delete/{university_id}")
-async def delete(university_id: int, conn=Depends(get_conn)):
+async def delete(
+    university_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     await conn.execute(
         """
         DELETE FROM university

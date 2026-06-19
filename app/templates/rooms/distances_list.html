@@ -2,24 +2,28 @@
 {% block title %}Расстояния между корпусами{% endblock %}
 {% block content %}
 <h1>Расстояния между корпусами</h1>
+{% if user and user.role == 'teacher' %}
 <a href="/rooms/distances/add" class="btn btn-primary mb-3">Добавить расстояние</a>
+{% endif %}
 <a href="/rooms/" class="btn btn-secondary mb-3">К помещениям</a>
 <table class="table table-bordered">
-<thead><tr><th>От корпуса</th><th>До корпуса</th><th>Минут</th><th></th></tr></thead>
+<thead><tr><th>От корпуса</th><th>До корпуса</th><th>Минут</th>{% if user and user.role == 'teacher' %}<th></th>{% endif %}</tr></thead>
 <tbody>
 {% for d in distances %}
 <tr>
   <td>{{ d.from_name }}</td>
   <td>{{ d.to_name }}</td>
   <td>{{ d.distance_minutes }}</td>
+  {% if user and user.role == 'teacher' %}
   <td>
     <form action="/rooms/distances/delete/{{ d.from_building_id }}/{{ d.to_building_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить?')">
       <button class="btn btn-sm btn-danger">Удалить</button>
     </form>
   </td>
+  {% endif %}
 </tr>
 {% else %}
-<tr><td colspan="4" class="text-muted">Нет данных</td></tr>
+<tr><td colspan="{% if user and user.role == 'teacher' %}4{% else %}3{% endif %}" class="text-muted">Нет данных</td></tr>
 {% endfor %}
 </tbody>
 </table>

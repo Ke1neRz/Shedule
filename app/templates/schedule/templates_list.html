@@ -5,7 +5,9 @@
   <h1><i class="bi bi-calendar-week"></i> Шаблон расписания</h1>
   <div class="btn-group">
     <a href="/schedule/" class="btn btn-outline-secondary"><i class="bi bi-calendar3"></i> К расписанию</a>
+    {% if user and user.role == 'teacher' %}
     <a href="/schedule/exceptions" class="btn btn-outline-info"><i class="bi bi-exclamation-circle"></i> Исключения</a>
+    {% endif %}
   </div>
 </div>
 
@@ -19,7 +21,7 @@
       {% endfor %}
     </select>
   </div>
-  {% if group_id %}
+  {% if group_id and user and user.role == 'teacher' %}
   <div class="col-md-6 text-end">
     <a href="/schedule/templates/add?group_id={{ group_id }}" class="btn btn-success"><i class="bi bi-plus-lg"></i> Добавить запись</a>
     <a href="/schedule/copy?from_group_id={{ group_id }}" class="btn btn-info text-white"><i class="bi bi-files"></i> Копировать</a>
@@ -43,7 +45,7 @@
       <th>Занятие</th>
       <th>Преподаватель</th>
       <th>Место</th>
-      <th style="width:140px">Действия</th>
+      {% if user and user.role == 'teacher' %}<th style="width:140px">Действия</th>{% endif %}
     </tr>
   </thead>
   <tbody>
@@ -78,6 +80,7 @@
           {% if t.building_name %}<br><small class="text-muted">{{ t.building_name }}</small>{% endif %}
         {% endif %}
       </td>
+      {% if user and user.role == 'teacher' %}
       <td>
         <a href="/schedule/templates/edit/{{ t.template_id }}" class="btn btn-sm btn-outline-warning" title="Изменить">✎</a>
         <a href="/schedule/exceptions/add?template_id={{ t.template_id }}" class="btn btn-sm btn-outline-info" title="Добавить исключение">⚠</a>
@@ -85,9 +88,10 @@
           <button class="btn btn-sm btn-outline-danger" title="Удалить">✕</button>
         </form>
       </td>
+      {% endif %}
     </tr>
   {% else %}
-    <tr><td colspan="8" class="text-center text-muted py-4">Нет записей в шаблоне для этой группы</td></tr>
+    <tr><td colspan="{% if user and user.role == 'teacher' %}8{% else %}7{% endif %}" class="text-center text-muted py-4">Нет записей в шаблоне для этой группы</td></tr>
   {% endfor %}
   </tbody>
 </table>

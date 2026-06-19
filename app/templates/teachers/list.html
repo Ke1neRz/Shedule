@@ -2,27 +2,30 @@
 {% block title %}Преподаватели{% endblock %}
 {% block content %}
 <h1>Преподаватели</h1>
+{% if user and user.role == 'teacher' %}
 <a href="/teachers/add" class="btn btn-primary mb-3">Добавить</a>
+{% endif %}
 <table class="table table-bordered">
-<thead>
-<tr><th>ФИО</th><th>Степень</th><th>Звание</th><th>Должность</th><th>Кафедра</th><th>Email</th><th></th></tr>
-</thead>
+<thead><tr>
+  <th>Фамилия И. О.</th><th>Степень</th><th>Должность</th><th>Email</th><th>Подразделение</th>
+  <th></th>
+</tr></thead>
 <tbody>
 {% for t in teachers %}
 <tr>
-  <td>{{ t.last_name }} {{ t.first_name }} {{ t.middle_name or '' }}</td>
+  <td><a href="/teachers/{{ t.teacher_id }}/preferences">{{ t.last_name }} {{ t.first_name }}{% if t.middle_name %} {{ t.middle_name }}{% endif %}</a></td>
   <td>{{ t.degree or '' }}</td>
-  <td>{{ t.title or '' }}</td>
   <td>{{ t.position or '' }}</td>
-  <td>{{ t.division_name }}</td>
   <td>{{ t.email or '' }}</td>
+  <td>{{ t.division_name }}</td>
   <td>
-    <a href="/teachers/{{ t.teacher_id }}/lessons" class="btn btn-sm btn-info">Занятия</a>
-    <a href="/teachers/{{ t.teacher_id }}/preferences" class="btn btn-sm btn-info">Предпочтения</a>
+    <a href="/teachers/{{ t.teacher_id }}/lessons" class="btn btn-sm btn-info text-white">Занятия</a>
+    {% if user and user.role == 'teacher' %}
     <a href="/teachers/edit/{{ t.teacher_id }}" class="btn btn-sm btn-warning">Изменить</a>
     <form action="/teachers/delete/{{ t.teacher_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить?')">
       <button class="btn btn-sm btn-danger">Удалить</button>
     </form>
+    {% endif %}
   </td>
 </tr>
 {% endfor %}

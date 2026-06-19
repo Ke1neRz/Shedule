@@ -2,31 +2,37 @@
 {% block title %}Помещения{% endblock %}
 {% block content %}
 <h1>Корпуса</h1>
+{% if user and user.role == 'teacher' %}
 <a href="/rooms/buildings/add" class="btn btn-primary mb-3">Добавить корпус</a>
+{% endif %}
 <a href="/rooms/distances" class="btn btn-info mb-3">Расстояния между корпусами</a>
 <table class="table table-bordered">
-<thead><tr><th>Название</th><th>Адрес</th><th>Аудиторий</th><th></th></tr></thead>
+<thead><tr><th>Название</th><th>Адрес</th><th>Аудиторий</th>{% if user and user.role == 'teacher' %}<th></th>{% endif %}</tr></thead>
 <tbody>
 {% for b in buildings %}
 <tr>
   <td>{{ b.name }}</td>
   <td>{{ b.address or '' }}</td>
   <td>{{ b.room_count }}</td>
+  {% if user and user.role == 'teacher' %}
   <td>
     <a href="/rooms/buildings/edit/{{ b.building_id }}" class="btn btn-sm btn-warning">Изменить</a>
     <form action="/rooms/buildings/delete/{{ b.building_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить?')">
       <button class="btn btn-sm btn-danger">Удалить</button>
     </form>
   </td>
+  {% endif %}
 </tr>
 {% endfor %}
 </tbody>
 </table>
 
-<h1>Аудитории</h1>
+<h1 class="mt-4">Аудитории</h1>
+{% if user and user.role == 'teacher' %}
 <a href="/rooms/rooms/add" class="btn btn-primary mb-3">Добавить аудиторию</a>
+{% endif %}
 <table class="table table-bordered">
-<thead><tr><th>Номер</th><th>Корпус</th><th>Тип</th><th>Вместимость</th><th></th></tr></thead>
+<thead><tr><th>Номер</th><th>Корпус</th><th>Тип</th><th>Вместимость</th>{% if user and user.role == 'teacher' %}<th></th>{% endif %}</tr></thead>
 <tbody>
 {% for r in rooms %}
 <tr>
@@ -34,12 +40,14 @@
   <td>{{ r.building_name }}</td>
   <td>{{ r.room_type }}</td>
   <td>{{ r.capacity }}</td>
+  {% if user and user.role == 'teacher' %}
   <td>
     <a href="/rooms/rooms/edit/{{ r.room_id }}" class="btn btn-sm btn-warning">Изменить</a>
     <form action="/rooms/rooms/delete/{{ r.room_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить?')">
       <button class="btn btn-sm btn-danger">Удалить</button>
     </form>
   </td>
+  {% endif %}
 </tr>
 {% endfor %}
 </tbody>

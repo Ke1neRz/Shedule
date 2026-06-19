@@ -1,26 +1,31 @@
 {% extends "base.html" %}
-{% block title %}Занятия преподавателя{% endblock %}
+{% block title %}Преподаватели — Занятия{% endblock %}
 {% block content %}
-<h1>Занятия: {{ teacher.last_name }} {{ teacher.first_name }} {{ teacher.middle_name or '' }}</h1>
-<a href="/teachers/{{ teacher.teacher_id }}/lessons/add" class="btn btn-primary mb-3">Назначить занятие</a>
-<a href="/teachers/" class="btn btn-secondary mb-3">Назад</a>
+<h1>Занятия преподавателя</h1>
+<p><strong>{{ teacher.last_name }} {{ teacher.first_name }}{% if teacher.middle_name %} {{ teacher.middle_name }}{% endif %}</strong>
+  {% if user and user.role == 'teacher' %}
+  <a href="/teachers/{{ teacher.teacher_id }}/lessons/add" class="btn btn-primary mb-3">Назначить занятие</a>
+  {% endif %}
+</p>
 <table class="table table-bordered">
-<thead><tr><th>Дисциплина</th><th>Тип занятия</th><th>Длительность (мин)</th><th></th></tr></thead>
+<thead><tr><th>Дисциплина</th><th>Тип</th><th>Длительность</th>{% if user and user.role == 'teacher' %}<th></th>{% endif %}</tr></thead>
 <tbody>
 {% for l in lessons %}
 <tr>
   <td>{{ l.subject }}</td>
   <td>{{ l.lesson_type }}</td>
-  <td>{{ l.duration_minutes }}</td>
+  <td>{{ l.duration_minutes }} мин</td>
+  {% if user and user.role == 'teacher' %}
   <td>
     <form action="/teachers/{{ teacher.teacher_id }}/lessons/delete/{{ l.lesson_id }}" method="post" class="d-inline" onsubmit="return confirm('Отменить назначение?')">
       <button class="btn btn-sm btn-danger">Отменить</button>
     </form>
   </td>
+  {% endif %}
 </tr>
-{% else %}
-<tr><td colspan="4" class="text-muted">Нет назначенных занятий</td></tr>
 {% endfor %}
 </tbody>
 </table>
+<a href="/teachers/{{ teacher.teacher_id }}/preferences" class="btn btn-secondary">К предпочтениям</a>
+<a href="/teachers/" class="btn btn-secondary">К списку</a>
 {% endblock %}

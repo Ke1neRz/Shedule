@@ -11,9 +11,13 @@
       .navbar-brand { font-weight: 700; letter-spacing: 0.5px; }
       .navbar-dark .navbar-nav .nav-link { transition: background 0.15s ease; border-radius: 6px; margin: 0 2px; }
       .navbar-dark .navbar-nav .nav-link:hover { background: rgba(255,255,255,0.12); }
+      .role-badge { font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 999px; font-weight: 600; }
+      .role-badge.teacher { background: #198754; color: #fff; }
+      .role-badge.student { background: #0d6efd; color: #fff; }
     </style>
 </head>
 <body>
+{% set user = current_user(request) %}
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
   <div class="container">
     <a class="navbar-brand" href="/"><i class="bi bi-calendar3"></i> Расписание</a>
@@ -32,6 +36,27 @@
         <li class="nav-item"><a class="nav-link" href="/schedule/">Расписание</a></li>
         <li class="nav-item"><a class="nav-link" href="/reports/">Отчёты</a></li>
         <li class="nav-item"><a class="nav-link" href="/universities/">Университеты</a></li>
+      </ul>
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+        {% if user %}
+          <li class="nav-item d-flex align-items-center text-white-50 me-2">
+            <i class="bi bi-person-circle me-1"></i>
+            <span class="text-white">{{ user.username }}</span>
+            <span class="role-badge {{ user.role }} ms-2">
+              {% if user.role == 'teacher' %}преподаватель{% else %}ученик{% endif %}
+            </span>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/auth/logout"><i class="bi bi-box-arrow-right"></i> Выйти</a>
+          </li>
+        {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="/auth/login"><i class="bi bi-box-arrow-in-right"></i> Войти</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/auth/register"><i class="bi bi-person-plus"></i> Регистрация</a>
+          </li>
+        {% endif %}
       </ul>
     </div>
   </div>

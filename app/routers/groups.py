@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Request, Form, Depends
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
-from fastapi.templating import Jinja2Templates
 import asyncpg
+
+from app.auth import require_teacher
 from app.db import get_conn
+from app.templates_setup import templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
 
 
 @router.get("/")
@@ -44,7 +45,11 @@ async def list_groups(request: Request, conn=Depends(get_conn)):
 
 
 @router.get("/academic/add")
-async def add_academic_form(request: Request, conn=Depends(get_conn)):
+async def add_academic_form(
+    request: Request,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     curricula = await conn.fetch(
         """
         SELECT curriculum_id, name
@@ -63,6 +68,7 @@ async def add_academic_submit(
     group_number: str = Form(...),
     curriculum_id: int = Form(...),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -76,7 +82,10 @@ async def add_academic_submit(
 
 @router.get("/academic/edit/{academic_group_id}")
 async def edit_academic_form(
-    request: Request, academic_group_id: int, conn=Depends(get_conn)
+    request: Request,
+    academic_group_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     group = await conn.fetchrow(
         """
@@ -105,6 +114,7 @@ async def edit_academic_submit(
     group_number: str = Form(...),
     curriculum_id: int = Form(...),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -119,7 +129,11 @@ async def edit_academic_submit(
 
 
 @router.post("/academic/delete/{academic_group_id}")
-async def delete_academic(academic_group_id: int, conn=Depends(get_conn)):
+async def delete_academic(
+    academic_group_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     await conn.execute(
         """
         DELETE FROM academic_group
@@ -128,6 +142,7 @@ async def delete_academic(academic_group_id: int, conn=Depends(get_conn)):
         academic_group_id,
     )
     return RedirectResponse(url="/groups/", status_code=303)
+
 
 # ===================== STUDY GROUPS (учебные группы) =====================
 
@@ -150,7 +165,11 @@ async def _fetch_semesters(conn):
 
 
 @router.get("/study/add")
-async def add_study_form(request: Request, conn=Depends(get_conn)):
+async def add_study_form(
+    request: Request,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     semesters = await _fetch_semesters(conn)
     academic = await conn.fetch(
         """
@@ -175,6 +194,7 @@ async def add_study_submit(
     semester_id: int = Form(...),
     academic_group_ids: list[int] = Form([]),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     row = await conn.fetchrow(
         """
@@ -197,7 +217,12 @@ async def add_study_submit(
 
 
 @router.get("/study/edit/{group_id}")
-async def edit_study_form(request: Request, group_id: int, conn=Depends(get_conn)):
+async def edit_study_form(
+    request: Request,
+    group_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     group = await conn.fetchrow(
         """
         SELECT *
@@ -246,6 +271,7 @@ async def edit_study_submit(
     semester_id: int = Form(...),
     academic_group_ids: list[int] = Form([]),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -277,7 +303,11 @@ async def edit_study_submit(
 
 
 @router.post("/study/delete/{group_id}")
-async def delete_study(group_id: int, conn=Depends(get_conn)):
+async def delete_study(
+    group_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     await conn.execute(
         """
         DELETE FROM study_group

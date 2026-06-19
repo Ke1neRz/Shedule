@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Регистрация{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-5">
+    <div class="card shadow-sm mt-4">
+      <div class="card-body p-4">
+        <h3 class="card-title text-center mb-4"><i class="bi bi-person-plus"></i> Регистрация</h3>
+        {% if error %}
+          <div class="alert alert-danger py-2">{{ error }}</div>
+        {% endif %}
+        <form method="post" action="/auth/register">
+          <div class="mb-3">
+            <label class="form-label">Логин <span class="text-danger">*</span></label>
+            <input type="text" name="username" class="form-control" required
+                   minlength="3" maxlength="50" pattern="[A-Za-z0-9_\-]+"
+                   value="{{ form.username }}" autofocus>
+            <div class="form-text">Только латиница, цифры, _ и -.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Полное имя</label>
+            <input type="text" name="full_name" class="form-control"
+                   value="{{ form.full_name }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Роль <span class="text-danger">*</span></label>
+            <select name="role" class="form-select">
+              <option value="student" {% if form.role == 'student' %}selected{% endif %}>
+                Ученик (только просмотр)
+              </option>
+              <option value="teacher" {% if form.role == 'teacher' %}selected{% endif %}>
+                Преподаватель (полный доступ)
+              </option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Пароль <span class="text-danger">*</span></label>
+            <input type="password" name="password" class="form-control" required minlength="6">
+            <div class="form-text">Не короче 6 символов.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Повторите пароль <span class="text-danger">*</span></label>
+            <input type="password" name="password_confirm" class="form-control" required minlength="6">
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Зарегистрироваться</button>
+        </form>
+        <hr>
+        <div class="text-center">
+          <small class="text-muted">Уже есть аккаунт?</small>
+          <a href="/auth/login" class="btn btn-link btn-sm">Войти</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

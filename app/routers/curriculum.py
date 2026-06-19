@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Request, Form, Depends
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import RedirectResponse
-from fastapi.templating import Jinja2Templates
-import asyncpg
+
+from app.auth import require_teacher
 from app.db import get_conn
+from app.templates_setup import templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
 
 
 # ===================== CURRICULUM (общий учебный план) =====================
@@ -29,7 +29,7 @@ async def list_curriculum(request: Request, conn=Depends(get_conn)):
 
 
 @router.get("/add")
-async def add_form(request: Request):
+async def add_form(request: Request, user=Depends(require_teacher)):
     return templates.TemplateResponse(
         "curriculum/form.html",
         {"request": request, "curriculum": None},
@@ -43,6 +43,7 @@ async def add_submit(
     admission_year: int = Form(...),
     duration_years: int = Form(4),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -55,11 +56,14 @@ async def add_submit(
 
 
 @router.get("/edit/{curriculum_id}")
-async def edit_form(request: Request, curriculum_id: int, conn=Depends(get_conn)):
+async def edit_form(
+    request: Request,
+    curriculum_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     row = await conn.fetchrow(
-        """
-        SELECT * FROM curriculum WHERE curriculum_id = $1
-        """,
+        "SELECT * FROM curriculum WHERE curriculum_id = $1",
         curriculum_id,
     )
     return templates.TemplateResponse(
@@ -76,6 +80,7 @@ async def edit_submit(
     admission_year: int = Form(...),
     duration_years: int = Form(4),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -92,11 +97,13 @@ async def edit_submit(
 
 
 @router.post("/delete/{curriculum_id}")
-async def delete_curriculum(curriculum_id: int, conn=Depends(get_conn)):
+async def delete_curriculum(
+    curriculum_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     await conn.execute(
-        """
-        DELETE FROM curriculum WHERE curriculum_id = $1
-        """,
+        "DELETE FROM curriculum WHERE curriculum_id = $1",
         curriculum_id,
     )
     return RedirectResponse(url="/curriculum/", status_code=303)
@@ -109,7 +116,6 @@ async def _get_curriculum_or_404(conn, curriculum_id):
         "SELECT * FROM curriculum WHERE curriculum_id = $1", curriculum_id,
     )
     if not row:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Учебный план не найден")
     return row
 
@@ -136,7 +142,12 @@ async def list_semesters(request: Request, curriculum_id: int, conn=Depends(get_
 
 
 @router.get("/{curriculum_id}/semesters/add")
-async def add_semester_form(request: Request, curriculum_id: int, conn=Depends(get_conn)):
+async def add_semester_form(
+    request: Request,
+    curriculum_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     curriculum = await _get_curriculum_or_404(conn, curriculum_id)
     return templates.TemplateResponse(
         "curriculum/semester_form.html",
@@ -151,6 +162,7 @@ async def add_semester_submit(
     academic_year: int = Form(...),
     weeks: int = Form(18),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -166,7 +178,11 @@ async def add_semester_submit(
 
 @router.get("/{curriculum_id}/semesters/{semester_id}/edit")
 async def edit_semester_form(
-    request: Request, curriculum_id: int, semester_id: int, conn=Depends(get_conn),
+    request: Request,
+    curriculum_id: int,
+    semester_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     curriculum = await _get_curriculum_or_404(conn, curriculum_id)
     semester = await conn.fetchrow(
@@ -186,6 +202,7 @@ async def edit_semester_submit(
     academic_year: int = Form(...),
     weeks: int = Form(18),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -204,7 +221,10 @@ async def edit_semester_submit(
 
 @router.post("/{curriculum_id}/semesters/{semester_id}/delete")
 async def delete_semester(
-    curriculum_id: int, semester_id: int, conn=Depends(get_conn),
+    curriculum_id: int,
+    semester_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         "DELETE FROM curriculum_semester WHERE semester_id = $1", semester_id,
@@ -221,7 +241,6 @@ async def _get_semester_or_404(conn, semester_id):
         "SELECT * FROM curriculum_semester WHERE semester_id = $1", semester_id,
     )
     if not row:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Семестр не найден")
     return row
 
@@ -247,7 +266,6 @@ async def list_subjects(
     )
 
 
-# Query 14: Выборка дисциплин учебного плана для семестра
 @router.get("/{curriculum_id}/semesters/{semester_id}/subjects/weekly")
 async def subjects_weekly(
     request: Request,
@@ -290,7 +308,11 @@ async def subjects_weekly(
 
 @router.get("/{curriculum_id}/semesters/{semester_id}/subjects/add")
 async def add_subject_form(
-    request: Request, curriculum_id: int, semester_id: int, conn=Depends(get_conn),
+    request: Request,
+    curriculum_id: int,
+    semester_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     curriculum = await _get_curriculum_or_404(conn, curriculum_id)
     semester = await _get_semester_or_404(conn, semester_id)
@@ -315,6 +337,7 @@ async def add_subject_submit(
     lab_hours: int = Form(0),
     assessment_type: str = Form(...),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -337,6 +360,7 @@ async def edit_subject_form(
     semester_id: int,
     subject_id: int,
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     curriculum = await _get_curriculum_or_404(conn, curriculum_id)
     semester = await _get_semester_or_404(conn, semester_id)
@@ -365,6 +389,7 @@ async def edit_subject_submit(
     lab_hours: int = Form(0),
     assessment_type: str = Form(...),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -390,6 +415,7 @@ async def delete_subject(
     semester_id: int,
     subject_id: int,
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         "DELETE FROM curriculum_subject WHERE subject_id = $1", subject_id,
@@ -442,6 +468,7 @@ async def add_lesson_form(
     semester_id: int,
     subject_id: int,
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     curriculum = await _get_curriculum_or_404(conn, curriculum_id)
     semester = await _get_semester_or_404(conn, semester_id)
@@ -470,6 +497,7 @@ async def add_lesson_submit(
     lesson_type: str = Form(...),
     duration_minutes: int = Form(...),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -494,6 +522,7 @@ async def edit_lesson_form(
     subject_id: int,
     lesson_id: int,
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     curriculum = await _get_curriculum_or_404(conn, curriculum_id)
     semester = await _get_semester_or_404(conn, semester_id)
@@ -526,6 +555,7 @@ async def edit_lesson_submit(
     lesson_type: str = Form(...),
     duration_minutes: int = Form(...),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -551,6 +581,7 @@ async def delete_lesson(
     subject_id: int,
     lesson_id: int,
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         "DELETE FROM lesson WHERE lesson_id = $1", lesson_id,

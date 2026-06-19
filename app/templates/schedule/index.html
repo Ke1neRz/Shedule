@@ -152,8 +152,10 @@
     </div>
     <div class="col-md-3 d-flex align-items-end gap-2">
       <button class="btn btn-primary flex-grow-1"><i class="bi bi-search"></i> Показать</button>
+      {% if user and user.role == 'teacher' %}
       <a href="/schedule/templates" class="btn btn-success" title="Шаблоны"><i class="bi bi-calendar-week"></i></a>
       <a href="/schedule/exceptions" class="btn btn-info text-white" title="Исключения"><i class="bi bi-exclamation-circle"></i></a>
+      {% endif %}
     </div>
   </form>
 </div>

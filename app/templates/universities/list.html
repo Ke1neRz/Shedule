@@ -2,23 +2,25 @@
 {% block title %}Университеты{% endblock %}
 {% block content %}
 <h1>Университеты</h1>
+{% if user and user.role == 'teacher' %}
 <a href="/universities/add" class="btn btn-primary mb-3">Добавить</a>
+{% endif %}
 <table class="table table-bordered">
-<thead><tr><th>Название</th><th>Адрес</th><th></th></tr></thead>
+<thead><tr><th>Название</th><th>Адрес</th>{% if user and user.role == 'teacher' %}<th>Действия</th>{% endif %}</tr></thead>
 <tbody>
 {% for u in universities %}
 <tr>
   <td>{{ u.name }}</td>
   <td>{{ u.address or '' }}</td>
+  {% if user and user.role == 'teacher' %}
   <td>
     <a href="/universities/edit/{{ u.university_id }}" class="btn btn-sm btn-warning">Изменить</a>
     <form action="/universities/delete/{{ u.university_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить?')">
       <button class="btn btn-sm btn-danger">Удалить</button>
     </form>
   </td>
+  {% endif %}
 </tr>
-{% else %}
-<tr><td colspan="3" class="text-muted">Нет университетов</td></tr>
 {% endfor %}
 </tbody>
 </table>

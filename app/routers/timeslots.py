@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Request, Depends
-from fastapi.templating import Jinja2Templates
+from fastapi import APIRouter, Depends, Request
+
 from app.db import get_conn
+from app.templates_setup import templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
 
 
 @router.get("/")

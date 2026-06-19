@@ -1,5 +1,14 @@
 -- Часть 1: Структура таблиц (DDL)
 
+CREATE TABLE app_user (
+    user_id        SERIAL PRIMARY KEY,
+    username       VARCHAR(50) UNIQUE NOT NULL,
+    password_hash  VARCHAR(255) NOT NULL,
+    role           VARCHAR(10) NOT NULL CHECK (role IN ('teacher','student')),
+    full_name      VARCHAR(200),
+    created_at     TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE university (
     university_id   SERIAL PRIMARY KEY,
     name            VARCHAR(200) NOT NULL,
@@ -299,8 +308,17 @@ TRUNCATE TABLE
     schedule_exception, schedule_template, work_calendar, teacher_preference,
     teacher_lesson, lesson, curriculum_subject, academic_group,
     study_group_academic_group, study_group, room, building_distance, building,
-    timeslot, teacher, division, university, curriculum_semester, curriculum
+    timeslot, teacher, division, university, curriculum_semester, curriculum,
+    app_user
 RESTART IDENTITY CASCADE;
+
+-- Пользователи системы (роль: teacher или student)
+-- Пароли по умолчанию: admin / admin123  (преподаватель)
+--                      student / student123  (ученик)
+-- Хеши: PBKDF2-HMAC-SHA256, 120000 итераций; соль встроена в строку до '$'.
+INSERT INTO app_user (username, password_hash, role, full_name) VALUES
+('admin',   'admin_seed_v1$bc8e0d727bf62367ee2022fb79c34c111cdb4045e7d5d60f97391e6f740f2388',   'teacher', 'Администратор (преподаватель)'),
+('student', 'student_seed_v1$fdd6ae59945882735902f618241d467e9f431e299d2a8d2a6f994a23832f6766', 'student', 'Иванов Иван (ученик)');
 
 -- Университет
 INSERT INTO university (name, address) VALUES

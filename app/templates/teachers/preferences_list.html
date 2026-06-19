@@ -2,11 +2,13 @@
 {% block title %}Предпочтения преподавателя{% endblock %}
 {% block content %}
 <h1>Предпочтения: {{ teacher.last_name }} {{ teacher.first_name }} {{ teacher.middle_name or '' }}</h1>
+{% if user and user.role == 'teacher' %}
 <a href="/teachers/{{ teacher.teacher_id }}/preferences/add" class="btn btn-primary mb-3">Добавить</a>
+{% endif %}
 <a href="/teachers/" class="btn btn-secondary mb-3">Назад к списку</a>
 
 <table class="table table-bordered">
-<thead><tr><th>День</th><th>Пара</th><th>Время</th><th>Предпочтение</th><th></th></tr></thead>
+<thead><tr><th>День</th><th>Пара</th><th>Время</th><th>Предпочтение</th>{% if user and user.role == 'teacher' %}<th></th>{% endif %}</tr></thead>
 <tbody>
 {% for p in preferences %}
 <tr>
@@ -16,12 +18,14 @@
   <td>{{ p.pair_number }}</td>
   <td>{{ p.start_time }}–{{ p.end_time }}</td>
   <td>{{ 'Да' if p.is_preferred else 'Нет' }}</td>
+  {% if user and user.role == 'teacher' %}
   <td>
     <a href="/teachers/{{ teacher.teacher_id }}/preferences/edit/{{ p.preference_id }}" class="btn btn-sm btn-warning">Изменить</a>
     <form action="/teachers/{{ teacher.teacher_id }}/preferences/delete/{{ p.preference_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить?')">
       <button class="btn btn-sm btn-danger">Удалить</button>
     </form>
   </td>
+  {% endif %}
 </tr>
 {% endfor %}
 </tbody>

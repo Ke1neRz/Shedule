@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Request, Form, Depends, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
 from datetime import date, datetime, timedelta
+
+from app.auth import require_teacher
 from app.db import get_conn
+from app.templates_setup import templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
 
 
 def mat_schedule_cte() -> str:
@@ -382,7 +383,11 @@ async def rooms_report(
 
 # Queries 6–10: Аудит расписания (проверки ограничений)
 @router.get("/audit")
-async def audit_report(request: Request, conn=Depends(get_conn)):
+async def audit_report(
+    request: Request,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     today = date.today()
     d_from = today - timedelta(days=180)
     d_to = today + timedelta(days=30)

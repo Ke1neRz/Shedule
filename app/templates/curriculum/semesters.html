@@ -3,7 +3,9 @@
 {% block content %}
 <h1>Семестры плана: {{ curriculum.name }}</h1>
 <p>{{ curriculum.direction_code }}, набор {{ curriculum.admission_year }}, длительность {{ curriculum.duration_years }} г.</p>
+{% if user and user.role == 'teacher' %}
 <a href="/curriculum/{{ curriculum.curriculum_id }}/semesters/add" class="btn btn-primary mb-3">Добавить семестр</a>
+{% endif %}
 <table class="table table-bordered">
 <thead><tr><th>№</th><th>Учебный год</th><th>Недель</th><th>Дисциплин</th><th></th></tr></thead>
 <tbody>
@@ -15,10 +17,12 @@
   <td>{{ s.subjects_count }}</td>
   <td>
     <a href="/curriculum/{{ curriculum.curriculum_id }}/semesters/{{ s.semester_id }}/subjects" class="btn btn-sm btn-info">Дисциплины</a>
+    {% if user and user.role == 'teacher' %}
     <a href="/curriculum/{{ curriculum.curriculum_id }}/semesters/{{ s.semester_id }}/edit" class="btn btn-sm btn-warning">Изменить</a>
     <form action="/curriculum/{{ curriculum.curriculum_id }}/semesters/{{ s.semester_id }}/delete" method="post" class="d-inline" onsubmit="return confirm('Удалить семестр и все его дисциплины?')">
       <button class="btn btn-sm btn-danger">Удалить</button>
     </form>
+    {% endif %}
   </td>
 </tr>
 {% else %}

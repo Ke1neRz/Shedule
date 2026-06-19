@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Request, Form, Depends, HTTPException, Query
 from fastapi.responses import RedirectResponse, HTMLResponse
-from fastapi.templating import Jinja2Templates
 import asyncpg
 from datetime import date, timedelta
+
+from app.auth import require_teacher
 from app.db import get_conn
+from app.templates_setup import templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
 
 
 def _parity_matches(parity: str, is_even: bool) -> bool:
@@ -38,22 +39,6 @@ async def _validate_constraints(
     exception_entry_date: date | None = None,
     is_exception_add: bool = False,
 ) -> list[str]:
-    """Проверка бизнес-ограничений из ТЗ. Возвращает список сообщений об
-    ошибках. Если непустой — запись сохранять нельзя.
-
-    Реализованные ограничения (все жёсткие):
-      1. Учебное поручение: teacher_id есть в teacher_lesson для lesson_id.
-      2. Вместимость аудитории: capacity(room) >= student_count(group).
-      3. Преподаватель не может вести две пары в одно и то же время
-         (с учётом чётности недели).
-      4. Аудитория не может быть занята двумя парами одновременно.
-      5. У группы не может быть двух пар в одно и то же время
-         (это уже UNIQUE на schedule_template, но даём понятное сообщение).
-      6. Не более 5 пар в день у преподавателя и у группы (по ТК РФ,
-         не более 8 астрономических часов в день).
-      7. Перемещение между корпусами: между соседними парами у одного
-         препода/группы — должно быть ≤ 90 мин на переход.
-    """
     errors: list[str] = []
     if week_parity not in ("all", "even", "odd"):
         week_parity = "all"
@@ -884,6 +869,7 @@ async def add_template_form(
     group_id: str = Query(""),
     semester_id: str = Query(""),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     groups, semesters, teachers, lessons, rooms = await _load_form_data(conn)
     return templates.TemplateResponse(
@@ -912,6 +898,7 @@ async def add_template_submit(
     is_online: bool = Form(False),
     online_link: str = Form(""),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     if is_online:
         room_id = None
@@ -961,7 +948,10 @@ async def add_template_submit(
 
 @router.get("/templates/edit/{template_id}")
 async def edit_template_form(
-    request: Request, template_id: int, conn=Depends(get_conn),
+    request: Request,
+    template_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     template = await conn.fetchrow(
         "SELECT * FROM schedule_template WHERE template_id = $1", template_id,
@@ -993,6 +983,7 @@ async def edit_template_submit(
     is_online: bool = Form(False),
     online_link: str = Form(""),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     if is_online:
         room_id = None
@@ -1036,7 +1027,11 @@ async def edit_template_submit(
 
 
 @router.post("/templates/delete/{template_id}")
-async def delete_template(template_id: int, conn=Depends(get_conn)):
+async def delete_template(
+    template_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     row = await conn.fetchrow(
         "SELECT group_id FROM schedule_template WHERE template_id = $1", template_id,
     )
@@ -1163,6 +1158,7 @@ async def add_exception_form(
     group_id: str = Query(""),
     entry_date: str = Query(""),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     templates_list, teachers, lessons, rooms, groups = await _load_exception_form_data(conn)
     return templates.TemplateResponse(
@@ -1194,6 +1190,7 @@ async def add_exception_submit(
     online_link: str = Form(""),
     note: str = Form(""),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     template_id_val = _opt_int(template_id)
     group_id_val = _opt_int(group_id)
@@ -1357,7 +1354,10 @@ async def add_exception_submit(
 
 @router.get("/exceptions/edit/{exception_id}")
 async def edit_exception_form(
-    request: Request, exception_id: int, conn=Depends(get_conn),
+    request: Request,
+    exception_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     exc = await conn.fetchrow(
         "SELECT * FROM schedule_exception WHERE exception_id = $1", exception_id,
@@ -1392,6 +1392,7 @@ async def edit_exception_submit(
     online_link: str = Form(""),
     note: str = Form(""),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     template_id_val = _opt_int(template_id)
     group_id_val = _opt_int(group_id)
@@ -1463,7 +1464,11 @@ async def edit_exception_submit(
 
 
 @router.post("/exceptions/delete/{exception_id}")
-async def delete_exception(exception_id: int, conn=Depends(get_conn)):
+async def delete_exception(
+    exception_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     await conn.execute(
         "DELETE FROM schedule_exception WHERE exception_id = $1", exception_id,
     )
@@ -1480,6 +1485,7 @@ async def copy_form(
     from_semester_id: str = Query(""),
     to_semester_id: str = Query(""),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     groups, semesters, _, _, _ = await _load_form_data(conn)
     return templates.TemplateResponse(
@@ -1502,6 +1508,7 @@ async def copy_submit(
     to_group_id: int = Form(...),
     to_semester_id: int = Form(...),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     try:
         await conn.execute(

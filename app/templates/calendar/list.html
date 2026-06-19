@@ -2,9 +2,11 @@
 {% block title %}Календарь{% endblock %}
 {% block content %}
 <h1>Рабочий календарь</h1>
+{% if user and user.role == 'teacher' %}
 <a href="/calendar/add" class="btn btn-primary mb-3">Добавить день</a>
+{% endif %}
 <table class="table table-bordered">
-<thead><tr><th>Дата</th><th>Рабочий</th><th>Праздник</th><th>Примечание</th><th></th></tr></thead>
+<thead><tr><th>Дата</th><th>Рабочий</th><th>Праздник</th><th>Примечание</th>{% if user and user.role == 'teacher' %}<th></th>{% endif %}</tr></thead>
 <tbody>
 {% for d in dates %}
 <tr>
@@ -12,12 +14,14 @@
   <td>{{ 'Да' if d.is_working else 'Нет' }}</td>
   <td>{{ 'Да' if d.is_holiday else 'Нет' }}</td>
   <td>{{ d.note or '' }}</td>
+  {% if user and user.role == 'teacher' %}
   <td>
     <a href="/calendar/edit/{{ d.calendar_id }}" class="btn btn-sm btn-warning">Изменить</a>
     <form action="/calendar/delete/{{ d.calendar_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить?')">
       <button class="btn btn-sm btn-danger">Удалить</button>
     </form>
   </td>
+  {% endif %}
 </tr>
 {% endfor %}
 </tbody>

@@ -2,7 +2,9 @@
 {% block title %}Учебные планы{% endblock %}
 {% block content %}
 <h1>Учебные планы</h1>
+{% if user and user.role == 'teacher' %}
 <a href="/curriculum/add" class="btn btn-primary mb-3">Добавить план</a>
+{% endif %}
 <table class="table table-bordered">
 <thead><tr><th>Название</th><th>Код направления</th><th>Год набора</th><th>Длит.</th><th>Семестров</th><th></th></tr></thead>
 <tbody>
@@ -15,10 +17,12 @@
   <td>{{ c.semesters_count }}</td>
   <td>
     <a href="/curriculum/{{ c.curriculum_id }}/semesters" class="btn btn-sm btn-info">Семестры</a>
+    {% if user and user.role == 'teacher' %}
     <a href="/curriculum/edit/{{ c.curriculum_id }}" class="btn btn-sm btn-warning">Изменить</a>
     <form action="/curriculum/delete/{{ c.curriculum_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить план и все его семестры?')">
       <button class="btn btn-sm btn-danger">Удалить</button>
     </form>
+    {% endif %}
   </td>
 </tr>
 {% endfor %}

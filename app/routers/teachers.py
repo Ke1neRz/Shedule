@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Request, Form, Depends, HTTPException
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import RedirectResponse
-from fastapi.templating import Jinja2Templates
-import asyncpg
+
+from app.auth import require_teacher
 from app.db import get_conn
+from app.templates_setup import templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
 
 
 @router.get("/")
@@ -25,7 +25,11 @@ async def list_teachers(request: Request, conn=Depends(get_conn)):
 
 
 @router.get("/add")
-async def add_form(request: Request, conn=Depends(get_conn)):
+async def add_form(
+    request: Request,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     divisions = await conn.fetch(
         """
         SELECT division_id, name
@@ -50,6 +54,7 @@ async def add_submit(
     email: str = Form(""),
     division_id: int = Form(...),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -63,7 +68,12 @@ async def add_submit(
 
 
 @router.get("/edit/{teacher_id}")
-async def edit_form(request: Request, teacher_id: int, conn=Depends(get_conn)):
+async def edit_form(
+    request: Request,
+    teacher_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     teacher = await conn.fetchrow(
         """
         SELECT *
@@ -97,6 +107,7 @@ async def edit_submit(
     email: str = Form(""),
     division_id: int = Form(...),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -118,7 +129,11 @@ async def edit_submit(
 
 
 @router.post("/delete/{teacher_id}")
-async def delete(teacher_id: int, conn=Depends(get_conn)):
+async def delete(
+    teacher_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     await conn.execute(
         """
         DELETE FROM teacher
@@ -131,7 +146,9 @@ async def delete(teacher_id: int, conn=Depends(get_conn)):
 
 # Preferences
 @router.get("/{teacher_id}/preferences")
-async def list_preferences(request: Request, teacher_id: int, conn=Depends(get_conn)):
+async def list_preferences(
+    request: Request, teacher_id: int, conn=Depends(get_conn),
+):
     teacher = await conn.fetchrow(
         """
         SELECT *
@@ -159,7 +176,12 @@ async def list_preferences(request: Request, teacher_id: int, conn=Depends(get_c
 
 
 @router.get("/{teacher_id}/preferences/add")
-async def add_preference_form(request: Request, teacher_id: int, conn=Depends(get_conn)):
+async def add_preference_form(
+    request: Request,
+    teacher_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     teacher = await conn.fetchrow(
         """
         SELECT *
@@ -193,6 +215,7 @@ async def add_preference_submit(
     pair_number: int = Form(...),
     is_preferred: bool = Form(False),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -209,7 +232,11 @@ async def add_preference_submit(
 
 @router.get("/{teacher_id}/preferences/edit/{preference_id}")
 async def edit_preference_form(
-    request: Request, teacher_id: int, preference_id: int, conn=Depends(get_conn)
+    request: Request,
+    teacher_id: int,
+    preference_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     teacher = await conn.fetchrow(
         """
@@ -253,6 +280,7 @@ async def edit_preference_submit(
     pair_number: int = Form(...),
     is_preferred: bool = Form(False),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -270,7 +298,12 @@ async def edit_preference_submit(
 
 
 @router.post("/{teacher_id}/preferences/delete/{preference_id}")
-async def delete_preference(teacher_id: int, preference_id: int, conn=Depends(get_conn)):
+async def delete_preference(
+    teacher_id: int,
+    preference_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     await conn.execute(
         """
         DELETE FROM teacher_preference
@@ -285,7 +318,9 @@ async def delete_preference(teacher_id: int, preference_id: int, conn=Depends(ge
 
 # Teacher <-> Lesson assignments
 @router.get("/{teacher_id}/lessons")
-async def list_teacher_lessons(request: Request, teacher_id: int, conn=Depends(get_conn)):
+async def list_teacher_lessons(
+    request: Request, teacher_id: int, conn=Depends(get_conn),
+):
     teacher = await conn.fetchrow(
         """
         SELECT *
@@ -315,7 +350,12 @@ async def list_teacher_lessons(request: Request, teacher_id: int, conn=Depends(g
 
 
 @router.get("/{teacher_id}/lessons/add")
-async def add_teacher_lesson_form(request: Request, teacher_id: int, conn=Depends(get_conn)):
+async def add_teacher_lesson_form(
+    request: Request,
+    teacher_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     teacher = await conn.fetchrow(
         """
         SELECT *
@@ -350,6 +390,7 @@ async def add_teacher_lesson_submit(
     teacher_id: int,
     lesson_id: int = Form(...),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -366,7 +407,10 @@ async def add_teacher_lesson_submit(
 
 @router.post("/{teacher_id}/lessons/delete/{lesson_id}")
 async def delete_teacher_lesson(
-    teacher_id: int, lesson_id: int, conn=Depends(get_conn)
+    teacher_id: int,
+    lesson_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """

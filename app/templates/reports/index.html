@@ -40,6 +40,7 @@
       </div>
     </div>
   </div>
+  {% if user and user.role == 'teacher' %}
   <div class="col-md-6">
     <div class="card mb-3">
       <div class="card-body">
@@ -49,6 +50,7 @@
       </div>
     </div>
   </div>
+  {% endif %}
   <div class="col-md-6">
     <div class="card mb-3">
       <div class="card-body">

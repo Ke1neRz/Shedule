@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Вход{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5 col-lg-4">
+    <div class="card shadow-sm mt-4">
+      <div class="card-body p-4">
+        <h3 class="card-title text-center mb-4"><i class="bi bi-box-arrow-in-right"></i> Вход</h3>
+        {% if error %}
+          <div class="alert alert-danger py-2">{{ error }}</div>
+        {% endif %}
+        <form method="post" action="/auth/login">
+          <input type="hidden" name="next" value="{{ next }}">
+          <div class="mb-3">
+            <label class="form-label">Логин</label>
+            <input type="text" name="username" class="form-control" required
+                   autofocus value="{{ username }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Пароль</label>
+            <input type="password" name="password" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Войти</button>
+        </form>
+        <hr>
+        <div class="text-center">
+          <small class="text-muted">Нет аккаунта?</small>
+          <a href="/auth/register" class="btn btn-link btn-sm">Зарегистрироваться</a>
+        </div>
+        <div class="text-muted small mt-3">
+          <strong>Тестовые учётки:</strong><br>
+          <code>admin</code> / <code>admin123</code> — преподаватель<br>
+          <code>student</code> / <code>student123</code> — ученик
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

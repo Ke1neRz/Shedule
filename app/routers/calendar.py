@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Request, Form, Depends
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
-from fastapi.templating import Jinja2Templates
+
+from app.auth import require_teacher
 from app.db import get_conn
+from app.templates_setup import templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
 
 
 @router.get("/")
@@ -23,7 +24,7 @@ async def list_calendar(request: Request, conn=Depends(get_conn)):
 
 
 @router.get("/add")
-async def add_form(request: Request):
+async def add_form(request: Request, user=Depends(require_teacher)):
     return templates.TemplateResponse(
         "calendar/form.html",
         {"request": request, "item": None},
@@ -37,6 +38,7 @@ async def add_submit(
     is_holiday: bool = Form(False),
     note: str = Form(""),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -49,7 +51,12 @@ async def add_submit(
 
 
 @router.get("/edit/{calendar_id}")
-async def edit_form(request: Request, calendar_id: int, conn=Depends(get_conn)):
+async def edit_form(
+    request: Request,
+    calendar_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     item = await conn.fetchrow(
         """
         SELECT *
@@ -72,6 +79,7 @@ async def edit_submit(
     is_holiday: bool = Form(False),
     note: str = Form(""),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -88,7 +96,11 @@ async def edit_submit(
 
 
 @router.post("/delete/{calendar_id}")
-async def delete(calendar_id: int, conn=Depends(get_conn)):
+async def delete(
+    calendar_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     await conn.execute(
         """
         DELETE FROM work_calendar

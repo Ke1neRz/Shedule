@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Request, Form, Depends
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
-from fastapi.templating import Jinja2Templates
 import asyncpg
+
+from app.auth import require_teacher
 from app.db import get_conn
+from app.templates_setup import templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
 
 
 @router.get("/")
@@ -34,7 +35,11 @@ async def list_divisions(request: Request, conn=Depends(get_conn)):
 
 
 @router.get("/add")
-async def add_form(request: Request, conn=Depends(get_conn)):
+async def add_form(
+    request: Request,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     parents = await conn.fetch(
         """
         SELECT division_id, name
@@ -66,6 +71,7 @@ async def add_submit(
     parent_id: int = Form(None),
     university_id: int = Form(...),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -78,7 +84,12 @@ async def add_submit(
 
 
 @router.get("/edit/{division_id}")
-async def edit_form(request: Request, division_id: int, conn=Depends(get_conn)):
+async def edit_form(
+    request: Request,
+    division_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     division = await conn.fetchrow(
         """
         SELECT *
@@ -119,6 +130,7 @@ async def edit_submit(
     parent_id: int = Form(None),
     university_id: int = Form(...),
     conn=Depends(get_conn),
+    user=Depends(require_teacher),
 ):
     await conn.execute(
         """
@@ -132,7 +144,11 @@ async def edit_submit(
 
 
 @router.post("/delete/{division_id}")
-async def delete(division_id: int, conn=Depends(get_conn)):
+async def delete(
+    division_id: int,
+    conn=Depends(get_conn),
+    user=Depends(require_teacher),
+):
     await conn.execute(
         """
         DELETE FROM division
