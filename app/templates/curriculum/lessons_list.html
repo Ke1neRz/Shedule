@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Занятия по дисциплине{% endblock %}
+{% block content %}
+<h1>Занятия: {{ subject.name }}</h1>
+<p>{{ curriculum.name }} — {{ semester.semester_number }}-й семестр</p>
+<a href="/curriculum/{{ curriculum.curriculum_id }}/semesters/{{ semester.semester_id }}/subjects/{{ subject.subject_id }}/lessons/add" class="btn btn-primary mb-3">Добавить занятие</a>
+<a href="/curriculum/{{ curriculum.curriculum_id }}/semesters/{{ semester.semester_id }}/subjects" class="btn btn-secondary mb-3">Назад</a>
+<table class="table table-bordered">
+<thead><tr><th>Тип занятия</th><th>Длительность (мин)</th><th></th></tr></thead>
+<tbody>
+{% for l in lessons %}
+<tr>
+  <td>{{ l.lesson_type }}</td>
+  <td>{{ l.duration_minutes }}</td>
+  <td>
+    <a href="/curriculum/{{ curriculum.curriculum_id }}/semesters/{{ semester.semester_id }}/subjects/{{ subject.subject_id }}/lessons/edit/{{ l.lesson_id }}" class="btn btn-sm btn-warning">Изменить</a>
+    <form action="/curriculum/{{ curriculum.curriculum_id }}/semesters/{{ semester.semester_id }}/subjects/{{ subject.subject_id }}/lessons/delete/{{ l.lesson_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить?')">
+      <button class="btn btn-sm btn-danger">Удалить</button>
+    </form>
+  </td>
+</tr>
+{% else %}
+<tr><td colspan="3" class="text-muted">Нет занятий</td></tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Исключения расписания{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1><i class="bi bi-exclamation-circle"></i> Исключения расписания</h1>
+  <div class="btn-group">
+    <a href="/schedule/" class="btn btn-outline-secondary"><i class="bi bi-calendar3"></i> К расписанию</a>
+    <a href="/schedule/templates" class="btn btn-outline-primary"><i class="bi bi-calendar-week"></i> Шаблоны</a>
+  </div>
+</div>
+
+<p class="text-muted">
+  Исключения позволяют на конкретную дату <strong>отменить</strong> занятие из шаблона,
+  <strong>заменить</strong> его (другой предмет/преподаватель/аудитория) или
+  <strong>добавить</strong> разовое занятие, которого нет в шаблоне.
+</p>
+
+<form method="get" class="row g-2 mb-3 align-items-end">
+  <div class="col-md-4">
+    <label class="form-label">Учебная группа</label>
+    <select name="group_id" class="form-select" onchange="this.form.submit()">
+      <option value="">— все группы —</option>
+      {% for g in groups %}
+        <option value="{{ g.group_id }}" {% if g.group_id == group_id %}selected{% endif %}>{{ g.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-3">
+    <label class="form-label">С даты</label>
+    <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+  </div>
+  <div class="col-md-3">
+    <label class="form-label">По дату</label>
+    <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+  </div>
+  <div class="col-md-2">
+    <button class="btn btn-primary w-100"><i class="bi bi-search"></i> Показать</button>
+  </div>
+</form>
+
+<div class="mb-3">
+  <a href="/schedule/exceptions/add{% if group_id %}?group_id={{ group_id }}{% endif %}" class="btn btn-success"><i class="bi bi-plus-lg"></i> Добавить исключение</a>
+</div>
+
+<div class="table-responsive">
+<table class="table table-bordered table-hover align-middle">
+  <thead class="table-light">
+    <tr>
+      <th>Дата</th>
+      <th>Тип</th>
+      <th>День</th>
+      <th>Пара</th>
+      <th>Чётн.</th>
+      <th>Группа</th>
+      <th>Предмет</th>
+      <th>Преподаватель</th>
+      <th>Аудитория</th>
+      <th>Примечание</th>
+      <th style="width:90px">Действия</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% set day_names = {1:'Пн',2:'Вт',3:'Ср',4:'Чт',5:'Пт',6:'Сб'} %}
+  {% set type_labels = {'replace':'Замена','cancel':'Отмена','add':'Добавление'} %}
+  {% set type_colors = {'replace':'warning','cancel':'danger','add':'success'} %}
+  {% for e in exceptions %}
+    {% set is_tpl = e.exception_type in ('replace','cancel') %}
+    {% set dow = e.day_of_week if e.day_of_week else e.tpl_day %}
+    {% set pair = e.pair_number if e.pair_number else e.tpl_pair %}
+    {% set parity = e.week_parity if e.week_parity else e.tpl_parity %}
+    <tr>
+      <td>{{ e.entry_date.strftime('%d.%m.%Y') }}</td>
+      <td><span class="badge bg-{{ type_colors.get(e.exception_type, 'secondary') }}">{{ type_labels.get(e.exception_type, e.exception_type) }}</span></td>
+      <td>{{ day_names.get(dow, '—') if dow else '—' }}</td>
+      <td>{{ pair or '—' }}</td>
+      <td>
+        {% if parity == 'all' %}<small class="text-muted">каждая</small>
+        {% elif parity == 'even' %}<small>чёт</small>
+        {% elif parity == 'odd' %}<small>нечёт</small>
+        {% else %}—{% endif %}
+      </td>
+      <td>
+        {% if is_tpl %}{{ e.template_group_name or '—' }}
+        {% else %}{{ e.explicit_group_name or '—' }}{% endif %}
+      </td>
+      <td>
+        {% if e.exception_type == 'cancel' %}<span class="text-muted">—</span>
+        {% else %}
+          {{ e.exc_subject_name or e.tpl_subject_name or '—' }}
+        {% endif %}
+      </td>
+      <td>
+        {% if e.exception_type == 'cancel' %}—
+        {% else %}
+          {% if e.teacher_id %}
+            <span class="text-primary">замена:</span><br>
+          {% endif %}
+          {% if e.teacher_id %}
+            {{ e.teacher_last }} {{ e.teacher_first|first }}.{{ e.teacher_middle|first if e.teacher_middle else '' }}.
+          {% else %}
+            {{ '—' }}
+          {% endif %}
+        {% endif %}
+      </td>
+      <td>
+        {% if e.exception_type == 'cancel' %}—
+        {% else %}
+          {% if e.is_online %}<span class="badge bg-info">Онлайн</span>
+          {% elif e.room_name %}ауд. {{ e.room_name }}{% if e.building_name %} <small class="text-muted">({{ e.building_name }})</small>{% endif %}
+          {% else %}—{% endif %}
+        {% endif %}
+      </td>
+      <td><small>{{ e.note or '' }}</small></td>
+      <td>
+        <a href="/schedule/exceptions/edit/{{ e.exception_id }}" class="btn btn-sm btn-outline-warning" title="Изменить">✎</a>
+        <form action="/schedule/exceptions/delete/{{ e.exception_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить исключение?')">
+          <button class="btn btn-sm btn-outline-danger" title="Удалить">✕</button>
+        </form>
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="11" class="text-center text-muted py-4">Нет исключений в выбранном диапазоне</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

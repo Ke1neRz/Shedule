@@ -24,14 +24,14 @@
 <h1>Учебные группы</h1>
 <a href="/groups/study/add" class="btn btn-primary mb-3">Добавить учебную группу</a>
 <table class="table table-bordered">
-<thead><tr><th>Название</th><th>Студентов</th><th>Академические группы</th><th>Учебный план</th><th></th></tr></thead>
+<thead><tr><th>Название</th><th>Студентов</th><th>Академические группы</th><th>План / Семестр</th><th></th></tr></thead>
 <tbody>
 {% for g in study %}
 <tr>
   <td>{{ g.name }}</td>
   <td>{{ g.student_count }}</td>
   <td>{{ g.academic_groups or '' }}</td>
-  <td>{{ g.curriculum_name }}</td>
+  <td>{{ g.curriculum_name }} / {{ g.semester_number }}-й ({{ g.academic_year }})</td>
   <td>
     <a href="/groups/study/edit/{{ g.group_id }}" class="btn btn-sm btn-warning">Изменить</a>
     <form action="/groups/study/delete/{{ g.group_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить?')">

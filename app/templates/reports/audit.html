@@ -3,7 +3,7 @@
 {% block content %}
 <h1>Аудит расписания</h1>
 
-<h2 class="mt-4">Query 6 — Пересечения в расписании группы</h2>
+<h2 class="mt-4">Пересечения в расписании группы</h2>
 {% if overlaps %}
 <table class="table table-bordered table-danger">
 <thead><tr><th>Группа</th><th>Дата</th><th>День</th><th>Пара</th><th>Пересечений</th></tr></thead>
@@ -23,7 +23,7 @@
 <p class="text-success">Нарушений не найдено.</p>
 {% endif %}
 
-<h2 class="mt-4">Query 7 — Лаборатории в неподходящих аудиториях</h2>
+<h2 class="mt-4">Лаборатории в неподходящих аудиториях</h2>
 {% if lab_wrong_rooms %}
 <table class="table table-bordered table-danger">
 <thead><tr><th>ID</th><th>Группа</th><th>Предмет</th><th>Аудитория</th><th>Тип аудитории</th></tr></thead>
@@ -43,7 +43,7 @@
 <p class="text-success">Нарушений не найдено.</p>
 {% endif %}
 
-<h2 class="mt-4">Query 8 — Недостаточная вместимость аудиторий</h2>
+<h2 class="mt-4">Недостаточная вместимость аудиторий</h2>
 {% if capacity_violations %}
 <table class="table table-bordered table-danger">
 <thead><tr><th>ID</th><th>Группа</th><th>Студентов</th><th>Аудитория</th><th>Вместимость</th></tr></thead>
@@ -63,7 +63,7 @@
 <p class="text-success">Нарушений не найдено.</p>
 {% endif %}
 
-<h2 class="mt-4">Query 9 — Преподаватели с более чем 5 парами в день</h2>
+<h2 class="mt-4">Преподаватели с более чем 5 парами в день</h2>
 {% if teacher_overload %}
 <table class="table table-bordered table-danger">
 <thead><tr><th>Преподаватель</th><th>Дата</th><th>Пар в день</th></tr></thead>
@@ -81,7 +81,7 @@
 <p class="text-success">Нарушений не найдено.</p>
 {% endif %}
 
-<h2 class="mt-4">Query 10 — Группы с более чем 5 парами в день</h2>
+<h2 class="mt-4">Группы с более чем 5 парами в день</h2>
 {% if group_overload %}
 <table class="table table-bordered table-danger">
 <thead><tr><th>Группа</th><th>Дата</th><th>Пар в день</th></tr></thead>
@@ -97,5 +97,27 @@
 </table>
 {% else %}
 <p class="text-success">Нарушений не найдено.</p>
+{% endif %}
+
+<h2 class="mt-4">Окна между парами более 1,5 астрономического часа (90 минут)</h2>
+<p class="text-muted">У одной группы в один день есть пара {{ 'A' }} и пара {{ 'B' }}, между которыми нет других пар, а перерыв между концом {{ 'A' }} и началом {{ 'B' }} превышает 1,5 часа.</p>
+{% if long_gaps %}
+<table class="table table-bordered table-warning">
+<thead><tr><th>Дата</th><th>Группа</th><th>Преподаватель</th><th>С пары</th><th>По пару</th><th>Окно (мин)</th></tr></thead>
+<tbody>
+{% for r in long_gaps %}
+<tr>
+  <td>{{ r.entry_date }}</td>
+  <td>{{ r.group_name }}</td>
+  <td>{{ r.teacher }}</td>
+  <td>{{ r.first_pair }}</td>
+  <td>{{ r.second_pair }}</td>
+  <td>{{ r.gap_minutes }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}
+<p class="text-success">Окон между парами более 1,5 часа не найдено.</p>
 {% endif %}
 {% endblock %}

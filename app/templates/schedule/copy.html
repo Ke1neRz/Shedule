@@ -1,31 +1,56 @@
 {% extends "base.html" %}
-{% block title %}Копирование расписания{% endblock %}
+{% block title %}Копирование шаблона{% endblock %}
 {% block content %}
-<h1>Копировать расписание</h1>
-<form method="post">
-  <div class="mb-3">
-    <label>Учебная группа</label>
-    <select name="group_id" class="form-select" required>
-      {% for g in groups %}
-      <option value="{{ g.group_id }}">{{ g.name }}</option>
-      {% endfor %}
-    </select>
-  </div>
+<h1><i class="bi bi-files"></i> Копирование шаблона расписания</h1>
+<p class="text-muted">Копирует все записи шаблона одной группы за один семестр в другую группу/семестр.
+Конфликтующие слоты пропускаются (ON CONFLICT DO NOTHING).</p>
+
+<form method="post" class="mt-3">
   <div class="row">
-    <div class="col-md-4 mb-3">
-      <label>Исходная дата начала</label>
-      <input type="date" name="date_from" class="form-control" required>
+    <div class="col-md-6 mb-3">
+      <h5>Источник</h5>
+      <div class="mb-2">
+        <label class="form-label">Группа</label>
+        <select name="from_group_id" class="form-select" required>
+          <option value="">— выберите —</option>
+          {% for g in groups %}
+            <option value="{{ g.group_id }}" {% if from_group_id == g.group_id %}selected{% endif %}>{{ g.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Семестр</label>
+        <select name="from_semester_id" class="form-select" required>
+          <option value="">— выберите —</option>
+          {% for s in semesters %}
+            <option value="{{ s.semester_id }}" {% if from_semester_id == s.semester_id %}selected{% endif %}>{{ s.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
     </div>
-    <div class="col-md-4 mb-3">
-      <label>Исходная дата окончания</label>
-      <input type="date" name="date_to" class="form-control" required>
-    </div>
-    <div class="col-md-4 mb-3">
-      <label>Сдвиг (недель)</label>
-      <input type="number" name="offset_weeks" class="form-control" value="1" required>
+    <div class="col-md-6 mb-3">
+      <h5>Назначение</h5>
+      <div class="mb-2">
+        <label class="form-label">Группа</label>
+        <select name="to_group_id" class="form-select" required>
+          <option value="">— выберите —</option>
+          {% for g in groups %}
+            <option value="{{ g.group_id }}" {% if to_group_id == g.group_id %}selected{% endif %}>{{ g.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Семестр</label>
+        <select name="to_semester_id" class="form-select" required>
+          <option value="">— выберите —</option>
+          {% for s in semesters %}
+            <option value="{{ s.semester_id }}" {% if to_semester_id == s.semester_id %}selected{% endif %}>{{ s.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
     </div>
   </div>
-  <button class="btn btn-primary">Копировать</button>
-  <a href="/schedule/" class="btn btn-secondary">Отмена</a>
+  <button class="btn btn-primary"><i class="bi bi-files"></i> Скопировать</button>
+  <a href="/schedule/templates" class="btn btn-secondary">Отмена</a>
 </form>
 {% endblock %}

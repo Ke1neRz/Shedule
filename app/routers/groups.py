@@ -20,17 +20,21 @@ async def list_groups(request: Request, conn=Depends(get_conn)):
     )
     study = await conn.fetch(
         """
-        SELECT sg.*, c.name AS curriculum_name,
+        SELECT sg.*,
+               c.name AS curriculum_name,
+               sm.semester_number,
+               sm.academic_year,
                STRING_AGG(ag.group_number, ', ' ORDER BY ag.group_number)
                    AS academic_groups
-        FROM study_group sg
-        JOIN curriculum c ON sg.curriculum_id = c.curriculum_id
-        LEFT JOIN study_group_academic_group sag
-                  ON sag.study_group_id = sg.group_id
-        LEFT JOIN academic_group ag
-                  ON sag.academic_group_id = ag.academic_group_id
-        GROUP BY sg.group_id, c.name
-        ORDER BY sg.name
+          FROM study_group sg
+          JOIN curriculum_semester sm ON sg.semester_id  = sm.semester_id
+          JOIN curriculum c          ON sm.curriculum_id = c.curriculum_id
+          LEFT JOIN study_group_academic_group sag
+                    ON sag.study_group_id = sg.group_id
+          LEFT JOIN academic_group ag
+                    ON sag.academic_group_id = ag.academic_group_id
+         GROUP BY sg.group_id, c.name, sm.semester_number, sm.academic_year
+         ORDER BY sg.name
         """
     )
     return templates.TemplateResponse(
@@ -125,26 +129,42 @@ async def delete_academic(academic_group_id: int, conn=Depends(get_conn)):
     )
     return RedirectResponse(url="/groups/", status_code=303)
 
-# Study groups
-@router.get("/study/add")
-async def add_study_form(request: Request, conn=Depends(get_conn)):
-    curricula = await conn.fetch(
+# ===================== STUDY GROUPS (учебные группы) =====================
+
+async def _fetch_semesters(conn):
+    return await conn.fetch(
         """
-        SELECT curriculum_id, name
-        FROM curriculum
-        ORDER BY name
+        SELECT sm.semester_id,
+               sm.semester_number,
+               sm.academic_year,
+               c.name AS curriculum_name,
+               c.direction_code,
+               c.curriculum_id,
+               (c.name || ' / ' || sm.semester_number || '-й семестр / ' || sm.academic_year)
+                   AS label
+          FROM curriculum_semester sm
+          JOIN curriculum c ON sm.curriculum_id = c.curriculum_id
+         ORDER BY c.admission_year DESC, sm.semester_number
         """
     )
+
+
+@router.get("/study/add")
+async def add_study_form(request: Request, conn=Depends(get_conn)):
+    semesters = await _fetch_semesters(conn)
     academic = await conn.fetch(
         """
-        SELECT academic_group_id, group_number
-        FROM academic_group
-        ORDER BY group_number
+        SELECT ag.academic_group_id,
+               ag.group_number,
+               c.name AS curriculum_name
+          FROM academic_group ag
+          JOIN curriculum c ON ag.curriculum_id = c.curriculum_id
+         ORDER BY ag.group_number
         """
     )
     return templates.TemplateResponse(
         "groups/study_form.html",
-        {"request": request, "group": None, "curricula": curricula, "academic": academic},
+        {"request": request, "group": None, "semesters": semesters, "academic": academic},
     )
 
 
@@ -152,17 +172,17 @@ async def add_study_form(request: Request, conn=Depends(get_conn)):
 async def add_study_submit(
     name: str = Form(...),
     student_count: int = Form(...),
-    curriculum_id: int = Form(...),
+    semester_id: int = Form(...),
     academic_group_ids: list[int] = Form([]),
     conn=Depends(get_conn),
 ):
     row = await conn.fetchrow(
         """
-        INSERT INTO study_group (name, student_count, curriculum_id)
+        INSERT INTO study_group (name, student_count, semester_id)
         VALUES ($1, $2, $3)
         RETURNING group_id
         """,
-        name, student_count, curriculum_id,
+        name, student_count, semester_id,
     )
     for ag_id in academic_group_ids:
         await conn.execute(
@@ -186,18 +206,15 @@ async def edit_study_form(request: Request, group_id: int, conn=Depends(get_conn
         """,
         group_id,
     )
-    curricula = await conn.fetch(
-        """
-        SELECT curriculum_id, name
-        FROM curriculum
-        ORDER BY name
-        """
-    )
+    semesters = await _fetch_semesters(conn)
     academic = await conn.fetch(
         """
-        SELECT academic_group_id, group_number
-        FROM academic_group
-        ORDER BY group_number
+        SELECT ag.academic_group_id,
+               ag.group_number,
+               c.name AS curriculum_name
+          FROM academic_group ag
+          JOIN curriculum c ON ag.curriculum_id = c.curriculum_id
+         ORDER BY ag.group_number
         """
     )
     selected = await conn.fetch(
@@ -214,7 +231,7 @@ async def edit_study_form(request: Request, group_id: int, conn=Depends(get_conn
         {
             "request": request,
             "group": group,
-            "curricula": curricula,
+            "semesters": semesters,
             "academic": academic,
             "selected_ids": selected_ids,
         },
@@ -226,7 +243,7 @@ async def edit_study_submit(
     group_id: int,
     name: str = Form(...),
     student_count: int = Form(...),
-    curriculum_id: int = Form(...),
+    semester_id: int = Form(...),
     academic_group_ids: list[int] = Form([]),
     conn=Depends(get_conn),
 ):
@@ -235,10 +252,10 @@ async def edit_study_submit(
         UPDATE study_group
            SET name          = $1,
                student_count = $2,
-               curriculum_id = $3
+               semester_id   = $3
          WHERE group_id      = $4
         """,
-        name, student_count, curriculum_id, group_id,
+        name, student_count, semester_id, group_id,
     )
     await conn.execute(
         """

@@ -1,82 +1,267 @@
 {% extends "base.html" %}
 {% block title %}Расписание{% endblock %}
+
+{% block head %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+<style>
+  .schedule-header {
+    background: linear-gradient(135deg, #f8f9fc 0%, #eef2f7 100%);
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  }
+  .schedule-header h2 { margin: 0; font-weight: 700; color: #2c3e50; }
+  .academic-title {
+    background: linear-gradient(135deg, #4f6bff 0%, #2940c4 100%);
+    color: #fff; border-radius: 14px;
+    padding: 0.85rem 1.25rem; margin-bottom: 1.25rem;
+    box-shadow: 0 4px 14px rgba(79,107,255,0.22);
+    display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;
+  }
+  .academic-title .ac-label {
+    font-size: 0.72rem; letter-spacing: 1.5px;
+    text-transform: uppercase; opacity: 0.85;
+  }
+  .academic-title .ac-value {
+    font-size: 1.1rem; font-weight: 700; line-height: 1.2;
+  }
+  .academic-title .ac-chip {
+    background: rgba(255,255,255,0.18); border-radius: 999px;
+    padding: 0.25rem 0.75rem; font-size: 0.8rem; font-weight: 500;
+  }
+  .week-nav .btn { border-radius: 10px; font-weight: 500; }
+  .filter-row label { font-size: 0.8rem; color: #6c757d; margin-bottom: 0.25rem; font-weight: 500; }
+  .schedule-table { table-layout: fixed; background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 18px rgba(0,0,0,0.06); }
+  .schedule-table thead th {
+    background: #2c3e50; color: #fff; text-align: center; vertical-align: middle;
+    border: none; padding: 0.65rem 0.4rem; font-weight: 600;
+  }
+  .schedule-table thead th .day-name { font-size: 0.95rem; letter-spacing: 0.5px; }
+  .schedule-table thead th .day-date { font-size: 0.75rem; font-weight: 400; opacity: 0.85; margin-top: 0.15rem; }
+  .schedule-table thead th .day-badge {
+    display: inline-block; font-size: 0.62rem; padding: 0.1rem 0.4rem;
+    border-radius: 4px; margin-top: 0.25rem; font-weight: 600; letter-spacing: 0.4px;
+  }
+  .schedule-table thead th .day-badge.holiday { background: #ffebee; color: #c62828; }
+  .schedule-table thead th .day-badge.dayoff { background: #eceff1; color: #455a64; }
+  .schedule-table thead th.today-col { background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); }
+  .schedule-table thead th.nonworking-col { background: linear-gradient(135deg, #607d8b 0%, #455a64 100%); }
+  .schedule-table tbody td.pair-cell {
+    background: #f8f9fa; font-weight: 700; color: #495057; text-align: center;
+    vertical-align: middle; width: 70px;
+  }
+  .schedule-table tbody td.lesson-cell { vertical-align: top; padding: 0.35rem; background: #fafbfc; min-width: 150px; }
+  .schedule-table tbody td.lesson-cell.today-cell { background: #fff8e1; }
+  .schedule-table tbody td.lesson-cell.nonworking-cell { background: #eceff1; }
+  .schedule-table tbody td.lesson-cell .nonworking-note {
+    color: #607d8b; font-size: 0.78rem; text-align: center; padding: 0.4rem;
+    font-style: italic;
+  }
+  .lesson-card {
+    background: #fff; border-radius: 10px; border: 1px solid #e6eaf0;
+    border-left-width: 4px; padding: 0.45rem 0.55rem; margin-bottom: 0.35rem;
+    font-size: 0.78rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .lesson-card .lc-group {
+    display: inline-block; color: #fff; padding: 0.1rem 0.5rem; border-radius: 6px;
+    font-size: 0.7rem; font-weight: 600; margin-bottom: 0.25rem;
+  }
+  .lesson-card .lc-subject { font-weight: 700; color: #2c3e50; line-height: 1.15; margin-bottom: 0.15rem; }
+  .lesson-card .lc-row { display: flex; flex-wrap: wrap; gap: 0.2rem; align-items: center; margin-top: 0.2rem; }
+  .lesson-card .lc-type {
+    font-size: 0.66rem; padding: 0.1rem 0.4rem; border-radius: 5px;
+    background: #e9ecef; color: #495057; font-weight: 600;
+  }
+  .lesson-card .lc-type.lecture { background: #e3f2fd; color: #1565c0; }
+  .lesson-card .lc-type.practice { background: #e8f5e9; color: #2e7d32; }
+  .lesson-card .lc-type.lab { background: #fce4ec; color: #c2185b; }
+  .lesson-card .lc-type.exam { background: #ffebee; color: #c62828; }
+  .lesson-card .lc-type.pass_test { background: #e0f7fa; color: #00695c; }
+  .lesson-card .lc-type.consult { background: #fff3e0; color: #ef6c00; }
+  .lesson-card .lc-type.internship { background: #f3e5f5; color: #6a1b9a; }
+  .lesson-card .lc-parity {
+    font-size: 0.66rem; padding: 0.1rem 0.4rem; border-radius: 5px;
+    background: #fff8e1; color: #f57c00; font-weight: 600;
+  }
+  .lesson-card .lc-source {
+    font-size: 0.6rem; padding: 0.05rem 0.35rem; border-radius: 4px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.3px;
+  }
+  .lesson-card .lc-source.template { background: #e8eaf6; color: #3949ab; }
+  .lesson-card .lc-source.replaced { background: #fff3cd; color: #856404; }
+  .lesson-card .lc-source.added { background: #d4edda; color: #155724; }
+  .lesson-card .lc-meta { color: #6c757d; font-size: 0.72rem; line-height: 1.2; margin-top: 0.2rem; }
+  .lesson-card .lc-note {
+    font-size: 0.68rem; color: #856404; background: #fff3cd; padding: 0.1rem 0.35rem;
+    border-radius: 4px; margin-top: 0.2rem;
+  }
+  .empty-cell { color: #adb5bd; font-size: 0.9rem; text-align: center; padding: 0.5rem; }
+  .select2-container--bootstrap-5 .select2-selection {
+    border-radius: 10px; min-height: 44px; padding: 5px 8px; border-color: #d6dae0;
+    background-color: #fff; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  }
+  .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered {
+    display: flex; flex-wrap: wrap; gap: 5px; padding: 2px 24px 2px 2px; min-height: 34px; align-items: center;
+  }
+  .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice {
+    background: linear-gradient(135deg, #4f6bff 0%, #2940c4 100%); border: none; color: #fff;
+    border-radius: 999px; padding: 4px 10px; font-size: 0.82rem; font-weight: 500;
+  }
+  .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice__remove {
+    color: #fff; background: rgba(255, 255, 255, 0.22); border-radius: 50%;
+    width: 18px; height: 18px; padding: 0; margin-right: 5px;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<h1>Расписание</h1>
-
-<form method="get" class="row g-3 mb-4">
-  <div class="col-md-3">
-    <label>Учебная группа</label>
-    <select name="group_id" class="form-select" required>
-      <option value="">-- выберите --</option>
-      {% for g in groups %}
-      <option value="{{ g.group_id }}" {% if g.group_id == group_id %}selected{% endif %}>{{ g.name }}</option>
-      {% endfor %}
-    </select>
-  </div>
-  <div class="col-md-3">
-    <label>С даты</label>
-    <input type="date" name="date_from" class="form-control" value="{{ date_from or '' }}" required>
-  </div>
-  <div class="col-md-3">
-    <label>По дату</label>
-    <input type="date" name="date_to" class="form-control" value="{{ date_to or '' }}" required>
-  </div>
-  <div class="col-md-3 d-flex align-items-end">
-    <button class="btn btn-primary w-100">Показать</button>
-  </div>
-</form>
-
-{% if warning %}
-<div class="alert alert-warning">{{ warning }}</div>
-{% endif %}
-
-{% if group_id %}
-<h3>Академические группы: {{ academic_groups | join(', ') }}</h3>
-<a href="/schedule/add?group_id={{ group_id }}&date={{ date_from }}" class="btn btn-success mb-3">Добавить занятие</a>
-<a href="/schedule/copy" class="btn btn-info mb-3">Копировать расписание</a>
-
-<table class="table table-bordered text-center">
-<thead>
-<tr class="table-light">
-  <th>Пара / Время</th>
-  {% for d, dn in days.items() %}
-  <th>{{ dn }}</th>
-  {% endfor %}
-</tr>
-</thead>
-<tbody>
-{% for pair in range(1,9) %}
-<tr>
-  <td class="fw-bold">{{ pair }}</td>
-  {% for d in range(1,7) %}
-  <td style="min-width:180px;">
-    {% for e in table[d][pair] %}
-    <div class="border rounded p-1 mb-1 bg-white">
-      <div class="fw-bold">{{ e.subject }}</div>
-      <div class="text-muted small">{{ e.lesson_type }}</div>
-      <div>{{ e.teacher_short }}</div>
-      {% if e.is_online %}
-        <div><span class="badge bg-info">Онлайн</span></div>
-        {% if e.online_link %}<div class="small"><a href="{{ e.online_link }}" target="_blank">ссылка</a></div>{% endif %}
-      {% else %}
-        <div class="small">{{ e.room or '' }} {{ '('+e.building+')' if e.building else '' }}</div>
-      {% endif %}
-      {% if e.week_parity != 'all' %}
-        <div class="badge bg-secondary">{{ 'чёт' if e.week_parity=='even' else 'нечёт' }}</div>
-      {% endif %}
-      <div class="mt-1">
-        <a href="/schedule/edit/{{ e.entry_id }}" class="btn btn-sm btn-outline-warning">✎</a>
-        <form action="/schedule/delete/{{ e.entry_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить?')">
-          <button class="btn btn-sm btn-outline-danger">✕</button>
-        </form>
-      </div>
+<div class="schedule-header">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <div>
+      <h2><i class="bi bi-calendar3"></i> Расписание</h2>
+      <small class="text-muted">Период: {{ date_from }} — {{ date_to }}</small>
     </div>
-    {% endfor %}
-  </td>
-  {% endfor %}
-</tr>
-{% endfor %}
-</tbody>
-</table>
+    <div class="btn-group week-nav" role="group">
+      <a href="?{% for gid in group_ids %}group_ids={{ gid }}&{% endfor %}date_from={{ prev_from }}&date_to={{ prev_to }}"
+         class="btn btn-outline-secondary">← Прошлая</a>
+      <a href="?{% for gid in group_ids %}group_ids={{ gid }}&{% endfor %}date_from={{ cur_from }}&date_to={{ cur_to }}"
+         class="btn btn-outline-primary">Текущая</a>
+      <a href="?{% for gid in group_ids %}group_ids={{ gid }}&{% endfor %}date_from={{ next_from }}&date_to={{ next_to }}"
+         class="btn btn-outline-secondary">Следующая →</a>
+    </div>
+  </div>
+
+  <form method="get" class="row g-2 filter-row">
+    <div class="col-md-5">
+      <label>Учебные группы</label>
+      <select name="group_ids" multiple class="form-select" id="group-select" size="1">
+        {% for g in groups %}
+          <option value="{{ g.group_id }}" {% if g.group_id in group_ids %}selected{% endif %}>{{ g.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label>С даты</label>
+      <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+    </div>
+    <div class="col-md-2">
+      <label>По дату</label>
+      <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+    </div>
+    <div class="col-md-3 d-flex align-items-end gap-2">
+      <button class="btn btn-primary flex-grow-1"><i class="bi bi-search"></i> Показать</button>
+      <a href="/schedule/templates" class="btn btn-success" title="Шаблоны"><i class="bi bi-calendar-week"></i></a>
+      <a href="/schedule/exceptions" class="btn btn-info text-white" title="Исключения"><i class="bi bi-exclamation-circle"></i></a>
+    </div>
+  </form>
+</div>
+
+{% if not groups %}
+  <div class="alert alert-info">Сначала создайте хотя бы одну учебную группу.</div>
+{% else %}
+
+<div class="academic-title">
+  <i class="bi bi-mortarboard-fill" style="font-size:1.4rem;"></i>
+  <div>
+    <div class="ac-label">Академические группы</div>
+    <div class="ac-value">
+      {% set seen = [] %}
+      {% for gid in group_ids %}
+        {% set title = academic_titles.get(gid, '') %}
+        {% if title and title not in seen %}
+          <span class="ac-chip">{{ title }}</span>
+          {% set _ = seen.append(title) %}
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="table-responsive">
+  <table class="table schedule-table">
+    <thead>
+      <tr>
+        <th style="width:70px;">Пара</th>
+        {% for d in range(1, 7) %}
+          {% set info = day_info[d] %}
+          <th class="{% if info.is_today %}today-col{% endif %} {% if info.is_nonworking %}nonworking-col{% endif %}">
+            <div class="day-name">{{ info.name }}</div>
+            <div class="day-date">{{ info.date[8:10] }}.{{ info.date[5:7] }}.{{ info.date[2:4] }}</div>
+            {% if info.is_nonworking %}
+              <div class="day-badge holiday">
+                {% if info.nonworking_reason %}{{ info.nonworking_reason }}{% else %}Нерабочий день{% endif %}
+              </div>
+            {% endif %}
+          </th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for pair in range(1, 9) %}
+        <tr>
+          <td class="pair-cell">{{ pair }}</td>
+          {% for d in range(1, 7) %}
+            {% set info = day_info[d] %}
+            <td class="lesson-cell {% if info.is_today %}today-cell{% endif %} {% if info.is_nonworking %}nonworking-cell{% endif %}">
+              {% if info.is_nonworking %}
+                <div class="nonworking-note">{{ info.nonworking_reason or 'Выходной / праздник — пар нет' }}</div>
+              {% endif %}
+              {% for e in table[d][pair] %}
+                {% set color = group_colors[e.group_id % 10] %}
+                <div class="lesson-card" style="border-left-color: {{ color }}">
+                  <span class="lc-group" style="background-color: {{ color }}">{{ group_map.get(e.group_id, '?') }}</span>
+                  <div class="lc-subject">{{ e.subject_name or '—' }}</div>
+                  <div class="lc-row">
+                    <span class="lc-type {{ e.lesson_type }}">{{ lesson_type_labels.get(e.lesson_type, e.lesson_type) }}</span>
+                    {% if e.is_online %}
+                      <span class="lc-parity">Онлайн</span>
+                    {% endif %}
+                  </div>
+                  <div class="lc-meta">
+                    <i class="bi bi-person"></i>
+                    {% set t_last = e.teacher_last or '' %}
+                    {% set t_first = e.teacher_first|first if e.teacher_first else '' %}
+                    {% set t_mid = e.teacher_middle|first if e.teacher_middle else '' %}
+                    {{ t_last }} {{ t_first }}.{% if t_mid %}{{ t_mid }}.{% endif %}
+                  </div>
+                  <div class="lc-meta">
+                    {% if e.is_online %}
+                      <i class="bi bi-camera-video"></i> Онлайн
+                      {% if e.online_link %}<a href="{{ e.online_link }}" target="_blank">ссылка</a>{% endif %}
+                    {% else %}
+                      <i class="bi bi-geo-alt"></i> ауд. {{ e.room_name or '—' }}
+                      {% if e.building_name %} <span class="text-muted">({{ e.building_name }})</span>{% endif %}
+                    {% endif %}
+                  </div>
+                  {% if e.exception_note %}
+                    <div class="lc-note"><i class="bi bi-info-circle"></i> {{ e.exception_note }}</div>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(document).ready(function() {
+  $('#group-select').select2({
+    theme: 'bootstrap-5',
+    placeholder: 'Выберите одну или несколько групп...',
+    allowClear: true,
+    width: '100%',
+    language: { noResults: () => "Ничего не найдено", searching: () => "Поиск..." }
+  });
+});
+</script>
 {% endblock %}

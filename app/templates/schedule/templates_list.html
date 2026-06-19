@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Шаблон расписания{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1><i class="bi bi-calendar-week"></i> Шаблон расписания</h1>
+  <div class="btn-group">
+    <a href="/schedule/" class="btn btn-outline-secondary"><i class="bi bi-calendar3"></i> К расписанию</a>
+    <a href="/schedule/exceptions" class="btn btn-outline-info"><i class="bi bi-exclamation-circle"></i> Исключения</a>
+  </div>
+</div>
+
+<form method="get" class="row g-2 mb-3 align-items-end">
+  <div class="col-md-6">
+    <label class="form-label">Учебная группа</label>
+    <select name="group_id" class="form-select" onchange="this.form.submit()">
+      <option value="">— выберите группу —</option>
+      {% for g in groups %}
+        <option value="{{ g.group_id }}" {% if g.group_id == group_id %}selected{% endif %}>{{ g.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% if group_id %}
+  <div class="col-md-6 text-end">
+    <a href="/schedule/templates/add?group_id={{ group_id }}" class="btn btn-success"><i class="bi bi-plus-lg"></i> Добавить запись</a>
+    <a href="/schedule/copy?from_group_id={{ group_id }}" class="btn btn-info text-white"><i class="bi bi-files"></i> Копировать</a>
+  </div>
+  {% endif %}
+</form>
+
+{% if selected_group %}
+<p class="text-muted">Группа: <strong>{{ selected_group.name }}</strong></p>
+{% endif %}
+
+{% if group_id %}
+<div class="table-responsive">
+<table class="table table-bordered table-hover align-middle">
+  <thead class="table-light">
+    <tr>
+      <th>Семестр</th>
+      <th>День</th>
+      <th>Пара</th>
+      <th>Чётность</th>
+      <th>Занятие</th>
+      <th>Преподаватель</th>
+      <th>Место</th>
+      <th style="width:140px">Действия</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% set day_names = {1: 'Пн', 2: 'Вт', 3: 'Ср', 4: 'Чт', 5: 'Пт', 6: 'Сб'} %}
+  {% for t in templates %}
+    <tr>
+      <td>
+        <small class="text-muted">{{ t.curriculum_name }}</small><br>
+        <strong>{{ t.semester_number }}-й</strong> / {{ t.academic_year }}
+      </td>
+      <td>{{ day_names[t.day_of_week] }}</td>
+      <td>{{ t.pair_number }}</td>
+      <td>
+        {% if t.week_parity == 'all' %}<span class="badge bg-secondary">каждую</span>
+        {% elif t.week_parity == 'even' %}<span class="badge bg-warning text-dark">чёт</span>
+        {% else %}<span class="badge bg-info text-dark">нечёт</span>{% endif %}
+      </td>
+      <td>
+        <strong>{{ t.subject_name }}</strong><br>
+        <small class="text-muted">
+          {% set lt = {'lecture':'Лекция','practice':'Практика','lab':'Лабораторная','exam':'Экзамен','pass_test':'Зачёт','consult':'Консультация','internship':'Стажировка'} %}
+          {{ lt.get(t.lesson_type, t.lesson_type) }} · {{ t.duration_minutes }} мин
+        </small>
+      </td>
+      <td>{{ t.last_name }} {{ t.first_name }}{% if t.middle_name %} {{ t.middle_name }}{% endif %}</td>
+      <td>
+        {% if t.is_online %}
+          <span class="badge bg-info">Онлайн</span>
+          {% if t.online_link %}<br><a href="{{ t.online_link }}" target="_blank" class="small">ссылка</a>{% endif %}
+        {% else %}
+          ауд. {{ t.room_name or '—' }}
+          {% if t.building_name %}<br><small class="text-muted">{{ t.building_name }}</small>{% endif %}
+        {% endif %}
+      </td>
+      <td>
+        <a href="/schedule/templates/edit/{{ t.template_id }}" class="btn btn-sm btn-outline-warning" title="Изменить">✎</a>
+        <a href="/schedule/exceptions/add?template_id={{ t.template_id }}" class="btn btn-sm btn-outline-info" title="Добавить исключение">⚠</a>
+        <form action="/schedule/templates/delete/{{ t.template_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить запись шаблона?')">
+          <button class="btn btn-sm btn-outline-danger" title="Удалить">✕</button>
+        </form>
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="8" class="text-center text-muted py-4">Нет записей в шаблоне для этой группы</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+{% endblock %}

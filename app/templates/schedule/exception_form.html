@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Изменить' if exception else 'Добавить' }} исключение{% endblock %}
+{% block content %}
+<h1>{{ 'Изменить' if exception else 'Добавить' }} исключение расписания</h1>
+<p class="text-muted">Разовое изменение для конкретной даты: отмена, замена или добавление занятия.</p>
+
+{% set cur_type = exception.exception_type if exception else 'replace' %}
+
+<form method="post" class="mt-3" id="exc-form">
+  <div class="row">
+    <div class="col-md-3 mb-3">
+      <label class="form-label">Тип исключения</label>
+      <select name="exception_type" id="exc_type" class="form-select" required>
+        <option value="replace" {% if cur_type == 'replace' %}selected{% endif %}>Замена (replace)</option>
+        <option value="cancel" {% if cur_type == 'cancel' %}selected{% endif %}>Отмена (cancel)</option>
+        <option value="add" {% if cur_type == 'add' %}selected{% endif %}>Добавление (add)</option>
+      </select>
+    </div>
+    <div class="col-md-3 mb-3">
+      <label class="form-label">Дата</label>
+      <input type="date" name="entry_date" class="form-control" value="{{ exception.entry_date.isoformat() if exception and exception.entry_date else preselected_date or '' }}" required>
+    </div>
+  </div>
+
+  <div id="tpl-block" class="border rounded p-3 mb-3 bg-light">
+    <h6 class="mb-3"><i class="bi bi-arrow-left-right"></i> Связь с шаблоном</h6>
+    <div class="mb-3">
+      <label class="form-label">Запись шаблона</label>
+      <select name="template_id" id="template_id" class="form-select">
+        <option value="">— выберите запись —</option>
+        {% for t in templates_list %}
+          <option value="{{ t.template_id }}" {% if exception and exception.template_id == t.template_id %}selected{% elif preselected_template == t.template_id %}selected{% endif %}>
+            [{{ t.group_name }}] {{ t.subject_name }} — {{ ['Пн','Вт','Ср','Чт','Пт','Сб'][t.day_of_week-1] }}, пара {{ t.pair_number }}{% if t.week_parity != 'all' %} ({{ 'чёт' if t.week_parity == 'even' else 'нечёт' }}){% endif %}
+          </option>
+        {% endfor %}
+      </select>
+      <small class="text-muted">Используется для типа «Замена» и «Отмена».</small>
+    </div>
+  </div>
+
+  <div id="add-block" class="border rounded p-3 mb-3 bg-light">
+    <h6 class="mb-3"><i class="bi bi-plus-circle"></i> Разовое занятие</h6>
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Группа</label>
+        <select name="group_id" id="group_id" class="form-select">
+          <option value="">— выберите —</option>
+          {% for g in groups %}
+            <option value="{{ g.group_id }}" {% if exception and exception.group_id == g.group_id %}selected{% elif preselected_group == g.group_id %}selected{% endif %}>{{ g.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2 mb-3">
+        <label class="form-label">День</label>
+        <select name="day_of_week" id="day_of_week" class="form-select">
+          {% set days = [(1,'Пн'),(2,'Вт'),(3,'Ср'),(4,'Чт'),(5,'Пт'),(6,'Сб')] %}
+          {% for v, l in days %}
+            <option value="{{ v }}" {% if exception and exception.day_of_week == v %}selected{% endif %}>{{ l }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2 mb-3">
+        <label class="form-label">Пара</label>
+        <select name="pair_number" id="pair_number" class="form-select">
+          {% for p in range(1, 9) %}
+            <option value="{{ p }}" {% if exception and exception.pair_number == p %}selected{% endif %}>{{ p }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2 mb-3">
+        <label class="form-label">Чётность</label>
+        <select name="week_parity" id="week_parity" class="form-select">
+          <option value="all" {% if not exception or exception.week_parity == 'all' %}selected{% endif %}>Каждая</option>
+          <option value="even" {% if exception and exception.week_parity == 'even' %}selected{% endif %}>Чёт</option>
+          <option value="odd" {% if exception and exception.week_parity == 'odd' %}selected{% endif %}>Нечёт</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="border rounded p-3 mb-3 bg-light">
+    <h6 class="mb-3"><i class="bi bi-book"></i> Содержание занятия</h6>
+    <div class="mb-3">
+      <label class="form-label">Предмет / занятие</label>
+      <select name="lesson_id" id="lesson_id" class="form-select">
+        <option value="">{% if cur_type == 'replace' or cur_type == 'cancel' %}— из шаблона —{% else %}— выберите —{% endif %}</option>
+        {% for l in lessons %}
+          <option value="{{ l.lesson_id }}" {% if exception and exception.lesson_id == l.lesson_id %}selected{% endif %}>{{ l.subject_name }} — {{ l.lesson_type }} ({{ l.duration_minutes }} мин)</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Преподаватель</label>
+      <select name="teacher_id" id="teacher_id" class="form-select">
+        <option value="">{% if cur_type == 'replace' or cur_type == 'cancel' %}— из шаблона —{% else %}— выберите —{% endif %}</option>
+        {% for t in teachers %}
+          <option value="{{ t.teacher_id }}" {% if exception and exception.teacher_id == t.teacher_id %}selected{% endif %}>{{ t.full_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Аудитория</label>
+      <select name="room_id" id="room_id" class="form-select">
+        <option value="">— не выбрано —</option>
+        {% for r in rooms %}
+          <option value="{{ r.room_id }}" {% if exception and exception.room_id == r.room_id %}selected{% endif %}>{{ r.label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="row">
+      <div class="col-md-3 mb-3 form-check mt-4 ms-2">
+        <input type="checkbox" name="is_online" id="is_online" class="form-check-input" value="true" {% if exception and exception.is_online %}checked{% endif %}>
+        <label class="form-check-label" for="is_online">Онлайн</label>
+      </div>
+      <div class="col-md-8 mb-3">
+        <label class="form-label">Ссылка</label>
+        <input type="url" name="online_link" id="online_link" class="form-control" value="{{ exception.online_link if exception else '' }}">
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Примечание</label>
+    <textarea name="note" class="form-control" rows="2">{{ exception.note if exception else '' }}</textarea>
+  </div>
+
+  <button class="btn btn-success"><i class="bi bi-check-lg"></i> Сохранить</button>
+  <a href="/schedule/exceptions" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const excTypeSel = document.getElementById('exc_type');
+const tplBlock   = document.getElementById('tpl-block');
+const addBlock   = document.getElementById('add-block');
+const tplSel     = document.getElementById('template_id');
+
+const fieldsOptionalInReplace = ['lesson_id', 'teacher_id'];
+const fieldsRequiredInAdd     = ['group_id', 'day_of_week', 'pair_number', 'lesson_id', 'teacher_id'];
+
+function applyExcType() {
+  const t = excTypeSel.value;
+
+  if (t === 'replace' || t === 'cancel') {
+    tplBlock.style.display = '';
+    addBlock.style.display = 'none';
+    tplSel.required = true;
+    fieldsRequiredInAdd.forEach(id => { const el = document.getElementById(id); if (el) el.required = false; });
+  } else {
+    tplBlock.style.display = 'none';
+    addBlock.style.display = '';
+    tplSel.required = false; tplSel.value = '';
+    fieldsRequiredInAdd.forEach(id => { const el = document.getElementById(id); if (el) el.required = true; });
+  }
+}
+excTypeSel.addEventListener('change', applyExcType);
+applyExcType();
+</script>
+{% endblock %}

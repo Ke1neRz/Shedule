@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Form, Depends
+from fastapi import APIRouter, Request, Form, Depends, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 import asyncpg
@@ -280,4 +280,101 @@ async def delete_preference(teacher_id: int, preference_id: int, conn=Depends(ge
     )
     return RedirectResponse(
         url=f"/teachers/{teacher_id}/preferences", status_code=303
+    )
+
+
+# Teacher <-> Lesson assignments
+@router.get("/{teacher_id}/lessons")
+async def list_teacher_lessons(request: Request, teacher_id: int, conn=Depends(get_conn)):
+    teacher = await conn.fetchrow(
+        """
+        SELECT *
+        FROM teacher
+        WHERE teacher_id = $1
+        """,
+        teacher_id,
+    )
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Преподаватель не найден")
+
+    rows = await conn.fetch(
+        """
+        SELECT l.lesson_id, cs.name AS subject, l.lesson_type, l.duration_minutes
+        FROM teacher_lesson tl
+        JOIN lesson l ON tl.lesson_id = l.lesson_id
+        JOIN curriculum_subject cs ON l.subject_id = cs.subject_id
+        WHERE tl.teacher_id = $1
+        ORDER BY cs.name, l.lesson_type
+        """,
+        teacher_id,
+    )
+    return templates.TemplateResponse(
+        "teachers/lessons_list.html",
+        {"request": request, "teacher": teacher, "lessons": rows},
+    )
+
+
+@router.get("/{teacher_id}/lessons/add")
+async def add_teacher_lesson_form(request: Request, teacher_id: int, conn=Depends(get_conn)):
+    teacher = await conn.fetchrow(
+        """
+        SELECT *
+        FROM teacher
+        WHERE teacher_id = $1
+        """,
+        teacher_id,
+    )
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Преподаватель не найден")
+
+    available = await conn.fetch(
+        """
+        SELECT l.lesson_id, cs.name AS subject, l.lesson_type, l.duration_minutes
+        FROM lesson l
+        JOIN curriculum_subject cs ON l.subject_id = cs.subject_id
+        WHERE l.lesson_id NOT IN (
+            SELECT lesson_id FROM teacher_lesson WHERE teacher_id = $1
+        )
+        ORDER BY cs.name, l.lesson_type
+        """,
+        teacher_id,
+    )
+    return templates.TemplateResponse(
+        "teachers/lesson_form.html",
+        {"request": request, "teacher": teacher, "lessons": available},
+    )
+
+
+@router.post("/{teacher_id}/lessons/add")
+async def add_teacher_lesson_submit(
+    teacher_id: int,
+    lesson_id: int = Form(...),
+    conn=Depends(get_conn),
+):
+    await conn.execute(
+        """
+        INSERT INTO teacher_lesson (teacher_id, lesson_id)
+        VALUES ($1, $2)
+        ON CONFLICT DO NOTHING
+        """,
+        teacher_id, lesson_id,
+    )
+    return RedirectResponse(
+        url=f"/teachers/{teacher_id}/lessons", status_code=303
+    )
+
+
+@router.post("/{teacher_id}/lessons/delete/{lesson_id}")
+async def delete_teacher_lesson(
+    teacher_id: int, lesson_id: int, conn=Depends(get_conn)
+):
+    await conn.execute(
+        """
+        DELETE FROM teacher_lesson
+        WHERE teacher_id = $1 AND lesson_id = $2
+        """,
+        teacher_id, lesson_id,
+    )
+    return RedirectResponse(
+        url=f"/teachers/{teacher_id}/lessons", status_code=303
     )

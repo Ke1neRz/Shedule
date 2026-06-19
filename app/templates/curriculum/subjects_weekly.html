@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Дисциплины с расчётом часов в неделю{% endblock %}
 {% block content %}
-<h1>Дисциплины плана: {{ curriculum.name }}</h1>
-<h4>Query 14 — Расчёт часов в неделю (семестр {{ curriculum.weeks }} недель)</h4>
+<h1>Дисциплины: {{ curriculum.name }} — {{ semester.semester_number }}-й семестр</h1>
+<h4>Расчёт часов в неделю (семестр {{ semester.weeks }} недель)</h4>
 
-<a href="/curriculum/{{ curriculum.curriculum_id }}/subjects" class="btn btn-secondary mb-3">Назад к дисциплинам</a>
+<a href="/curriculum/{{ curriculum.curriculum_id }}/semesters/{{ semester.semester_id }}/subjects" class="btn btn-secondary mb-3">Назад к дисциплинам</a>
 
 <table class="table table-bordered">
 <thead>

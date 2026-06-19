@@ -7,4 +7,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD uvicorn app.main:app --host ${APP_HOST} --port ${APP_PORT} --reload
+CMD uvicorn app.main:app --host ${APP_HOST} --port ${APP_PORT}

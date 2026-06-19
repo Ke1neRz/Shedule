@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Изменить' if semester else 'Добавить' }} семестр{% endblock %}
+{% block content %}
+<h1>{{ 'Изменить' if semester else 'Добавить' }} семестр</h1>
+<p>План: {{ curriculum.name }}</p>
+<form method="post">
+  <div class="row">
+    <div class="col-md-4 mb-3"><label>Номер семестра</label><input type="number" name="semester_number" min="1" max="12" class="form-control" value="{{ semester.semester_number if semester else 1 }}" required></div>
+    <div class="col-md-4 mb-3"><label>Учебный год</label><input type="number" name="academic_year" class="form-control" value="{{ semester.academic_year if semester else 2024 }}" required></div>
+    <div class="col-md-4 mb-3"><label>Недель</label><input type="number" name="weeks" min="1" class="form-control" value="{{ semester.weeks if semester else 18 }}" required></div>
+  </div>
+  <button class="btn btn-success">Сохранить</button>
+  <a href="/curriculum/{{ curriculum.curriculum_id }}/semesters" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Назначить занятие{% endblock %}
+{% block content %}
+<h1>Назначить занятие: {{ teacher.last_name }} {{ teacher.first_name }} {{ teacher.middle_name or '' }}</h1>
+<form method="post">
+  <div class="mb-3">
+    <label>Занятие</label>
+    <select name="lesson_id" class="form-select" required>
+      {% for l in lessons %}
+      <option value="{{ l.lesson_id }}">{{ l.subject }} ({{ l.lesson_type }}, {{ l.duration_minutes }} мин)</option>
+      {% else %}
+      <option value="" disabled>Нет доступных занятий</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button class="btn btn-success">Назначить</button>
+  <a href="/teachers/{{ teacher.teacher_id }}/lessons" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}

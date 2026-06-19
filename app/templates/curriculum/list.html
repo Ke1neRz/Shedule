@@ -4,19 +4,19 @@
 <h1>Учебные планы</h1>
 <a href="/curriculum/add" class="btn btn-primary mb-3">Добавить план</a>
 <table class="table table-bordered">
-<thead><tr><th>Название</th><th>Код направления</th><th>Семестр</th><th>Уч. год</th><th>Недель</th><th></th></tr></thead>
+<thead><tr><th>Название</th><th>Код направления</th><th>Год набора</th><th>Длит.</th><th>Семестров</th><th></th></tr></thead>
 <tbody>
 {% for c in curricula %}
 <tr>
   <td>{{ c.name }}</td>
   <td>{{ c.direction_code or '' }}</td>
-  <td>{{ c.semester }}</td>
-  <td>{{ c.academic_year }}</td>
-  <td>{{ c.weeks }}</td>
+  <td>{{ c.admission_year }}</td>
+  <td>{{ c.duration_years }} г.</td>
+  <td>{{ c.semesters_count }}</td>
   <td>
-    <a href="/curriculum/{{ c.curriculum_id }}/subjects" class="btn btn-sm btn-info">Дисциплины</a>
+    <a href="/curriculum/{{ c.curriculum_id }}/semesters" class="btn btn-sm btn-info">Семестры</a>
     <a href="/curriculum/edit/{{ c.curriculum_id }}" class="btn btn-sm btn-warning">Изменить</a>
-    <form action="/curriculum/delete/{{ c.curriculum_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить?')">
+    <form action="/curriculum/delete/{{ c.curriculum_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить план и все его семестры?')">
       <button class="btn btn-sm btn-danger">Удалить</button>
     </form>
   </td>

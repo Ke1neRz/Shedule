@@ -2,6 +2,7 @@
 {% block title %}{{ 'Изменить' if subject else 'Добавить' }} дисциплину{% endblock %}
 {% block content %}
 <h1>{{ 'Изменить' if subject else 'Добавить' }} дисциплину</h1>
+<p>{{ curriculum.name }} — {{ semester.semester_number }}-й семестр</p>
 <form method="post">
   <div class="mb-3"><label>Название</label><input name="name" class="form-control" value="{{ subject.name if subject else '' }}" required></div>
   <div class="row">
@@ -17,6 +18,6 @@
     </div>
   </div>
   <button class="btn btn-success">Сохранить</button>
-  <a href="/curriculum/{{ curriculum.curriculum_id }}/subjects" class="btn btn-secondary">Отмена</a>
+  <a href="/curriculum/{{ curriculum.curriculum_id }}/semesters/{{ semester.semester_id }}/subjects" class="btn btn-secondary">Отмена</a>
 </form>
 {% endblock %}

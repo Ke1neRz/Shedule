@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Изменить' if lesson else 'Добавить' }} занятие{% endblock %}
+{% block content %}
+<h1>{{ 'Изменить' if lesson else 'Добавить' }} занятие</h1>
+<p>Дисциплина: {{ subject.name }} | {{ curriculum.name }} — {{ semester.semester_number }}-й семестр</p>
+<form method="post">
+  <div class="mb-3">
+    <label>Тип занятия</label>
+    <select name="lesson_type" class="form-select" required>
+      {% set types = [('lecture', 'Лекция'), ('practice', 'Практика'), ('lab', 'Лабораторная'), ('exam', 'Экзамен'), ('pass_test', 'Зачёт'), ('consult', 'Консультация'), ('internship', 'Практика (стажировка)')] %}
+      {% for val, label in types %}
+      <option value="{{ val }}" {% if lesson and lesson.lesson_type == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label>Длительность (минут)</label>
+    <input name="duration_minutes" class="form-control" type="number" min="1" value="{{ lesson.duration_minutes if lesson else 90 }}" required>
+    <small class="text-muted">
+      Рекомендации: лекция/практика/лаба — 90 мин, консультация — 90 мин,
+      зачёт — 10 мин × кол-во студентов, экзамен — 20 мин × кол-во студентов.
+    </small>
+  </div>
+  <button class="btn btn-success">Сохранить</button>
+  <a href="/curriculum/{{ curriculum.curriculum_id }}/semesters/{{ semester.semester_id }}/subjects/{{ subject.subject_id }}/lessons" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, Form, Depends
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 import asyncpg
 from app.db import get_conn
@@ -193,3 +193,84 @@ async def delete_room(room_id: int, conn=Depends(get_conn)):
         room_id,
     )
     return RedirectResponse(url="/rooms/", status_code=303)
+
+
+# Building distances
+@router.get("/distances")
+async def list_distances(request: Request, conn=Depends(get_conn)):
+    rows = await conn.fetch(
+        """
+        SELECT bd.from_building_id, bd.to_building_id, bd.distance_minutes,
+               b1.name AS from_name, b2.name AS to_name
+        FROM building_distance bd
+        JOIN building b1 ON bd.from_building_id = b1.building_id
+        JOIN building b2 ON bd.to_building_id = b2.building_id
+        ORDER BY b1.name, b2.name
+        """
+    )
+    return templates.TemplateResponse(
+        "rooms/distances_list.html",
+        {"request": request, "distances": rows},
+    )
+
+
+@router.get("/distances/add")
+async def add_distance_form(request: Request, conn=Depends(get_conn)):
+    buildings = await conn.fetch(
+        """
+        SELECT building_id, name
+        FROM building
+        ORDER BY name
+        """
+    )
+    return templates.TemplateResponse(
+        "rooms/distance_form.html",
+        {"request": request, "buildings": buildings, "distance": None},
+    )
+
+
+@router.post("/distances/add")
+async def add_distance_submit(
+    from_building_id: int = Form(...),
+    to_building_id: int = Form(...),
+    distance_minutes: int = Form(...),
+    conn=Depends(get_conn),
+):
+    if from_building_id == to_building_id:
+        return HTMLResponse("<h1>Ошибка</h1><p>Корпуса должны быть разными.</p>", status_code=400)
+    try:
+        await conn.execute(
+            """
+            INSERT INTO building_distance (from_building_id, to_building_id, distance_minutes)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (from_building_id, to_building_id)
+            DO UPDATE SET distance_minutes = EXCLUDED.distance_minutes
+            """,
+            from_building_id, to_building_id, distance_minutes,
+        )
+        # Also insert reverse direction if not exists
+        await conn.execute(
+            """
+            INSERT INTO building_distance (from_building_id, to_building_id, distance_minutes)
+            VALUES ($1, $2, $3)
+            ON CONFLICT (from_building_id, to_building_id) DO NOTHING
+            """,
+            to_building_id, from_building_id, distance_minutes,
+        )
+    except asyncpg.exceptions.UniqueViolationError:
+        return HTMLResponse("<h1>Ошибка</h1><p>Такая запись уже существует.</p>", status_code=400)
+    return RedirectResponse(url="/rooms/distances", status_code=303)
+
+
+@router.post("/distances/delete/{from_building_id}/{to_building_id}")
+async def delete_distance(
+    from_building_id: int, to_building_id: int, conn=Depends(get_conn)
+):
+    await conn.execute(
+        """
+        DELETE FROM building_distance
+        WHERE from_building_id = $1 AND to_building_id = $2
+        """,
+        from_building_id, to_building_id,
+    )
+    return RedirectResponse(url="/rooms/distances", status_code=303)

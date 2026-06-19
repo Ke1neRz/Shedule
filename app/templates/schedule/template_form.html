@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Изменить' if template else 'Добавить' }} запись шаблона{% endblock %}
+{% block content %}
+<h1>{{ 'Изменить' if template else 'Добавить' }} запись шаблона расписания</h1>
+<p class="text-muted">Шаблон описывает регулярные занятия семестра (день недели + номер пары + чётность).</p>
+
+<form method="post" class="mt-3">
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Семестр</label>
+      <select name="semester_id" class="form-select" required>
+        <option value="">— выберите семестр —</option>
+        {% for s in semesters %}
+          <option value="{{ s.semester_id }}" {% if (template and template.semester_id == s.semester_id) or (preselected_semester and preselected_semester == s.semester_id) %}selected{% endif %}>{{ s.label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Учебная группа</label>
+      <select name="group_id" class="form-select" required>
+        <option value="">— выберите группу —</option>
+        {% for g in groups %}
+          <option value="{{ g.group_id }}" {% if (template and template.group_id == g.group_id) or (preselected_group and preselected_group == g.group_id) %}selected{% endif %}>{{ g.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-3 mb-3">
+      <label class="form-label">День недели</label>
+      <select name="day_of_week" class="form-select" required>
+        {% set days = [(1,'Понедельник'),(2,'Вторник'),(3,'Среда'),(4,'Четверг'),(5,'Пятница'),(6,'Суббота')] %}
+        {% for v, l in days %}
+          <option value="{{ v }}" {% if template and template.day_of_week == v %}selected{% endif %}>{{ l }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3 mb-3">
+      <label class="form-label">Номер пары</label>
+      <select name="pair_number" class="form-select" required>
+        {% for p in range(1, 9) %}
+          <option value="{{ p }}" {% if template and template.pair_number == p %}selected{% elif not template and p == 1 %}selected{% endif %}>{{ p }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3 mb-3">
+      <label class="form-label">Чётность недели</label>
+      <select name="week_parity" class="form-select">
+        <option value="all" {% if (template and template.week_parity == 'all') or not template %}selected{% endif %}>Каждую неделю</option>
+        <option value="even" {% if template and template.week_parity == 'even' %}selected{% endif %}>Чётные недели</option>
+        <option value="odd" {% if template and template.week_parity == 'odd' %}selected{% endif %}>Нечётные недели</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Занятие (дисциплина + тип)</label>
+    <select name="lesson_id" class="form-select" required>
+      <option value="">— выберите занятие —</option>
+      {% for l in lessons %}
+        <option value="{{ l.lesson_id }}" {% if template and template.lesson_id == l.lesson_id %}selected{% endif %}>{{ l.subject_name }} — {{ l.lesson_type }} ({{ l.duration_minutes }} мин)</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Преподаватель</label>
+    <select name="teacher_id" class="form-select" required>
+      <option value="">— выберите преподавателя —</option>
+      {% for t in teachers %}
+        <option value="{{ t.teacher_id }}" {% if template and template.teacher_id == t.teacher_id %}selected{% endif %}>{{ t.full_name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Аудитория (оставьте пустым для онлайн)</label>
+    <select name="room_id" class="form-select">
+      <option value="">— не выбрано —</option>
+      {% for r in rooms %}
+        <option value="{{ r.room_id }}" {% if template and template.room_id == r.room_id %}selected{% endif %}>{{ r.label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="row">
+    <div class="col-md-3 mb-3 form-check mt-4 ms-2">
+      <input type="checkbox" name="is_online" id="is_online" class="form-check-input" value="true" {% if template and template.is_online %}checked{% endif %}>
+      <label class="form-check-label" for="is_online">Онлайн</label>
+    </div>
+    <div class="col-md-8 mb-3">
+      <label class="form-label">Ссылка (для онлайн)</label>
+      <input type="url" name="online_link" class="form-control" value="{{ template.online_link if template else '' }}">
+    </div>
+  </div>
+
+  <button class="btn btn-success"><i class="bi bi-check-lg"></i> Сохранить</button>
+  <a href="/schedule/templates?group_id={{ template.group_id if template else preselected_group }}" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}

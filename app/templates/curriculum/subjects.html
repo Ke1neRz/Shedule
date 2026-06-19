@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Дисциплины{% endblock %}
 {% block content %}
-<h1>Дисциплины плана: {{ curriculum.name }}</h1>
-<a href="/curriculum/{{ curriculum.curriculum_id }}/subjects/add" class="btn btn-primary mb-3">Добавить дисциплину</a>
-<a href="/curriculum/{{ curriculum.curriculum_id }}/subjects/weekly" class="btn btn-info mb-3">Расчёт часов в неделю (Query 14)</a>
+<h1>Дисциплины: {{ curriculum.name }} — {{ semester.semester_number }}-й семестр ({{ semester.academic_year }})</h1>
+<a href="/curriculum/{{ curriculum.curriculum_id }}/semesters/{{ semester.semester_id }}/subjects/add" class="btn btn-primary mb-3">Добавить дисциплину</a>
+  <a href="/curriculum/{{ curriculum.curriculum_id }}/semesters/{{ semester.semester_id }}/subjects/weekly" class="btn btn-info mb-3">Расчёт часов в неделю</a>
 <table class="table table-bordered">
 <thead><tr><th>Название</th><th>Лекции</th><th>Практики</th><th>Лабы</th><th>Отчётность</th><th></th></tr></thead>
 <tbody>
@@ -15,8 +15,9 @@
   <td>{{ s.lab_hours }}</td>
   <td>{{ 'Экзамен' if s.assessment_type == 'exam' else 'Зачёт' }}</td>
   <td>
-    <a href="/curriculum/{{ curriculum.curriculum_id }}/subjects/edit/{{ s.subject_id }}" class="btn btn-sm btn-warning">Изменить</a>
-    <form action="/curriculum/{{ curriculum.curriculum_id }}/subjects/delete/{{ s.subject_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить?')">
+    <a href="/curriculum/{{ curriculum.curriculum_id }}/semesters/{{ semester.semester_id }}/subjects/{{ s.subject_id }}/lessons" class="btn btn-sm btn-info">Занятия</a>
+    <a href="/curriculum/{{ curriculum.curriculum_id }}/semesters/{{ semester.semester_id }}/subjects/edit/{{ s.subject_id }}" class="btn btn-sm btn-warning">Изменить</a>
+    <form action="/curriculum/{{ curriculum.curriculum_id }}/semesters/{{ semester.semester_id }}/subjects/delete/{{ s.subject_id }}" method="post" class="d-inline" onsubmit="return confirm('Удалить?')">
       <button class="btn btn-sm btn-danger">Удалить</button>
     </form>
   </td>
@@ -24,5 +25,5 @@
 {% endfor %}
 </tbody>
 </table>
-<a href="/curriculum/" class="btn btn-secondary">Назад</a>
+<a href="/curriculum/{{ curriculum.curriculum_id }}/semesters" class="btn btn-secondary">Назад к семестрам</a>
 {% endblock %}

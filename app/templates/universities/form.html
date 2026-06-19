@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Изменить' if university else 'Добавить' }} университет{% endblock %}
+{% block content %}
+<h1>{{ 'Изменить' if university else 'Добавить' }} университет</h1>
+<form method="post">
+  <div class="mb-3"><label>Название</label><input name="name" class="form-control" value="{{ university.name if university else '' }}" required></div>
+  <div class="mb-3"><label>Адрес</label><input name="address" class="form-control" value="{{ university.address if university else '' }}"></div>
+  <button class="btn btn-success">Сохранить</button>
+  <a href="/universities/" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}

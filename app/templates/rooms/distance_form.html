@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Изменить' if distance else 'Добавить' }} расстояние{% endblock %}
+{% block content %}
+<h1>{{ 'Изменить' if distance else 'Добавить' }} расстояние между корпусами</h1>
+<form method="post">
+  <div class="mb-3">
+    <label>От корпуса</label>
+    <select name="from_building_id" class="form-select" required>
+      {% for b in buildings %}
+      <option value="{{ b.building_id }}" {% if distance and distance.from_building_id == b.building_id %}selected{% endif %}>{{ b.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label>До корпуса</label>
+    <select name="to_building_id" class="form-select" required>
+      {% for b in buildings %}
+      <option value="{{ b.building_id }}" {% if distance and distance.to_building_id == b.building_id %}selected{% endif %}>{{ b.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label>Время (минут)</label>
+    <input name="distance_minutes" class="form-control" value="{{ distance.distance_minutes if distance else '' }}" type="number" min="1" required>
+  </div>
+  <button class="btn btn-success">Сохранить</button>
+  <a href="/rooms/distances" class="btn btn-secondary">Отмена</a>
+</form>
+{% endblock %}
